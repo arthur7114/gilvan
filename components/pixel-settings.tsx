@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Check, LoaderCircle } from "lucide-react";
 
-export function PixelSettings({ initialPixelId }: { initialPixelId: string }) {
+export function PixelSettings({ initialPixelId, disabled = false }: { initialPixelId: string; disabled?: boolean }) {
   const [pixelId, setPixelId] = useState(initialPixelId);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -34,12 +34,12 @@ export function PixelSettings({ initialPixelId }: { initialPixelId: string }) {
     <form className="pixel-form" onSubmit={save}>
       <label className="field">
         <span>ID do Meta Pixel</span>
-        <input value={pixelId} onChange={(event) => setPixelId(event.target.value.replace(/\D/g, ""))} placeholder="Ex.: 123456789012345" inputMode="numeric" />
+        <input value={pixelId} onChange={(event) => setPixelId(event.target.value.replace(/\D/g, ""))} placeholder="Ex.: 123456789012345" inputMode="numeric" disabled={disabled} />
       </label>
-      <button disabled={loading || !pixelId}>
+      <button disabled={disabled || loading || !pixelId}>
         {loading ? <LoaderCircle className="spin" size={17} /> : <Check size={17} />} Salvar Pixel
       </button>
-      <small>O evento <b>Lead</b> é enviado somente depois que a participação é salva.</small>
+      <small>{disabled ? "Conecte o Neon para liberar esta configuração." : <>O evento <b>Lead</b> é enviado somente depois que a participação é salva.</>}</small>
       {message && <p className="settings-success">{message}</p>}
       {error && <p className="settings-error">{error}</p>}
     </form>

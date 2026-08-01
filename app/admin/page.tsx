@@ -9,6 +9,9 @@ export const metadata = { title: "Painel da pesquisa | Conecta Cidades" };
 
 export default async function AdminPage() {
   if (!(await isAdmin())) return <AdminLogin />;
-  const [responses, pixelId] = await Promise.all([listResponses(), getPixelId()]);
-  return <AdminDashboard data={buildDashboardData(responses)} pixelId={pixelId} databaseConfigured={isDatabaseConfigured()} />;
+  const databaseConfigured = isDatabaseConfigured();
+  const [responses, pixelId] = databaseConfigured
+    ? await Promise.all([listResponses(), getPixelId()])
+    : [[], ""];
+  return <AdminDashboard data={buildDashboardData(responses)} pixelId={pixelId} databaseConfigured={databaseConfigured} />;
 }

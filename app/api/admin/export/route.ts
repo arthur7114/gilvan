@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
-import { listResponses } from "@/lib/db";
+import { canUseDatabase, listResponses } from "@/lib/db";
 import { identityQuestions, segments } from "@/lib/types";
 
 function safeCell(value: unknown) {
@@ -11,6 +11,12 @@ function safeCell(value: unknown) {
 
 export async function GET() {
   if (!(await isAdmin())) return NextResponse.json({ error: "Acesso não autorizado." }, { status: 401 });
+  if (!canUseDatabase()) {
+    return NextResponse.json(
+      { error: "Conecte o Neon antes de exportar. Sem banco conectado, não existem respostas persistentes para baixar." },
+      { status: 503 },
+    );
+  }
   const responses = await listResponses();
   const headers = [
     "ID", "Data", "Nome", "WhatsApp", "E-mail", "Bairro",

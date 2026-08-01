@@ -452,6 +452,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   background: var(--navy-900); color: white; font-size: 13px; font-weight: 700; text-decoration: none;
 }
 .export-button:hover, .section-heading > a:hover { background: var(--navy-800); }
+.export-button:disabled { cursor: not-allowed; opacity: .55; }
+.export-button:disabled:hover { background: var(--navy-700); }
+.export-unavailable { color: #8c6418; font-size: 13px; font-weight: 700; }
 .demo-banner {
   display: flex; align-items: center; gap: 11px; margin: 26px clamp(24px, 4vw, 58px) 0; padding: 13px 16px;
   border-radius: 12px; background: #fff4d7; color: #73531a; font-size: 13px;

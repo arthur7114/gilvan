@@ -5,6 +5,10 @@ import { CampaignChart, DailyChart } from "@/components/dashboard-charts";
 import { PixelSettings } from "@/components/pixel-settings";
 
 export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: DashboardData; pixelId: string; databaseConfigured: boolean }) {
+  const exportControl = databaseConfigured
+    ? <a className="export-button" href="/api/admin/export"><Download size={18} /> Exportar CSV</a>
+    : <button className="export-button" disabled title="Conecte o Neon para liberar a exportação."><Download size={18} /> Exportar CSV</button>;
+
   return (
     <main className="admin-shell">
       <aside className="admin-sidebar">
@@ -25,11 +29,11 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
       <div className="admin-main">
         <header className="admin-topbar">
           <div><h1>Painel da pesquisa</h1><p>Cruz das Almas · Edição histórica de 130 anos</p></div>
-          <a className="export-button" href="/api/admin/export"><Download size={18} /> Exportar CSV</a>
+          {exportControl}
         </header>
 
         {!databaseConfigured && (
-          <div className="demo-banner"><Database size={19} /><span><b>Modo de demonstração:</b> conecte o Neon na Vercel para tornar as respostas permanentes.</span></div>
+          <div className="demo-banner"><Database size={19} /><span><b>Banco ainda não conectado:</b> conecte o Neon na Vercel antes de divulgar a pesquisa. Sem isso, nenhuma participação será registrada.</span></div>
         )}
 
         <section id="visao-geral" className="dashboard-section">
@@ -104,7 +108,7 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
         </section>
 
         <section id="respostas" className="dashboard-section">
-          <div className="section-heading"><div><h2>Respostas recentes</h2><p>Uma visão rápida das últimas participações.</p></div><a href="/api/admin/export"><Download size={17} /> Baixar tudo</a></div>
+          <div className="section-heading"><div><h2>Respostas recentes</h2><p>Uma visão rápida das últimas participações.</p></div>{databaseConfigured ? <a href="/api/admin/export"><Download size={17} /> Baixar tudo</a> : <span className="export-unavailable">Exportação disponível após conectar o Neon.</span>}</div>
           <div className="responses-table-wrap">
             <table>
               <thead><tr><th>Participante</th><th>Bairro</th><th>Grande escolha</th><th>Data</th></tr></thead>
@@ -126,8 +130,8 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
         <section id="configuracoes" className="dashboard-section settings-section">
           <div className="section-heading"><div><h2>Configurações da campanha</h2><p>Mensuração e conexão dos dados.</p></div></div>
           <div className="settings-grid">
-            <article className="panel"><h3>Meta Pixel</h3><p>Configure o identificador usado nesta campanha.</p><PixelSettings initialPixelId={pixelId} /></article>
-            <article className="panel database-status"><h3>Armazenamento</h3><p>Onde as respostas da campanha são guardadas.</p><div className={databaseConfigured ? "connected" : "pending"}><Database size={22} /><span><b>{databaseConfigured ? "Neon conectado" : "Modo local"}</b><small>{databaseConfigured ? "Respostas persistentes e protegidas." : "Os dados reiniciam ao parar o servidor."}</small></span></div></article>
+            <article className="panel"><h3>Meta Pixel</h3><p>Configure o identificador usado nesta campanha.</p><PixelSettings initialPixelId={pixelId} disabled={!databaseConfigured} /></article>
+            <article className="panel database-status"><h3>Armazenamento</h3><p>Onde as respostas da campanha são guardadas.</p><div className={databaseConfigured ? "connected" : "pending"}><Database size={22} /><span><b>{databaseConfigured ? "Neon conectado" : "Neon pendente"}</b><small>{databaseConfigured ? "Respostas persistentes e protegidas." : "Configure DATABASE_URL na Vercel antes de publicar a campanha."}</small></span></div></article>
           </div>
         </section>
       </div>

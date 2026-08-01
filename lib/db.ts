@@ -130,3 +130,7 @@ export async function updatePixelId(pixelId: string): Promise<void> {
 export function isDatabaseConfigured() {
   return Boolean(process.env.DATABASE_URL);
 }
+
+export function canUseDatabase() {
+  return isDatabaseConfigured() || process.env.NODE_ENV !== "production";
+}
