@@ -46,8 +46,14 @@ export type DashboardData = {
   responses: StoredResponse[];
   total: number;
   today: number;
+  trackedResponses: number;
+  metaLeads: number;
   topCompanies: Array<{ name: string; mentions: number }>;
+  postcardLeaders: Array<{ name: string; mentions: number }>;
   neighborhoods: Array<{ name: string; responses: number }>;
   daily: Array<{ date: string; responses: number }>;
   segmentLeaders: Record<string, Array<{ name: string; mentions: number }>>;
+  channels: Array<{ name: string; leads: number; share: number }>;
+  campaigns: Array<{ name: string; leads: number; share: number }>;
+  creatives: Array<{ name: string; leads: number; share: number }>;
 };

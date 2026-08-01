@@ -18,23 +18,51 @@ function rankings(values: string[]) {
     .map(({ name, count }) => ({ name, mentions: count }));
 }
 
+function campaignBreakdown(values: string[], total: number) {
+  const counts = new Map<string, number>();
+  values.forEach((value) => counts.set(value, (counts.get(value) ?? 0) + 1));
+  return [...counts.entries()]
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, leads]) => ({ name, leads, share: total ? Math.round((leads / total) * 100) : 0 }));
+}
+
+function isMetaLead(source: Record<string, string> | undefined) {
+  const origin = source?.utm_source?.toLocaleLowerCase("pt-BR") ?? "";
+  return Boolean(source?.fbclid) || /(facebook|instagram|meta|fb|ig)/.test(origin);
+}
+
 export function buildDashboardData(responses: StoredResponse[]): DashboardData {
   const todayKey = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Fortaleza" });
   const allCompanies: string[] = [];
   const neighborhoods: string[] = [];
   const dailyMap = new Map<string, number>();
   const segmentValues: Record<string, string[]> = Object.fromEntries(segments.map((segment) => [segment, []]));
+  const channels: string[] = [];
+  const campaigns: string[] = [];
+  const creatives: string[] = [];
+  const postcardChoices: string[] = [];
+  let trackedResponses = 0;
+  let metaLeads = 0;
 
   for (const response of responses) {
     neighborhoods.push(response.neighborhood);
     response.identityAnswers.forEach(({ answer }) => allCompanies.push(answer));
     allCompanies.push(response.postcardCompany);
+    postcardChoices.push(response.postcardCompany);
     response.segmentAnswers.forEach(({ segment, companies }) => {
       allCompanies.push(...companies);
       if (segmentValues[segment]) segmentValues[segment].push(...companies);
     });
     const day = new Date(response.createdAt).toLocaleDateString("sv-SE", { timeZone: "America/Fortaleza" });
     dailyMap.set(day, (dailyMap.get(day) ?? 0) + 1);
+
+    const source = response.source ?? {};
+    const isTracked = Boolean(source.utm_source || source.utm_campaign || source.utm_content || source.fbclid);
+    if (isTracked) trackedResponses += 1;
+    if (isMetaLead(source)) metaLeads += 1;
+    channels.push(source.utm_source || (source.fbclid ? "Meta Ads (fbclid)" : "Direto / sem UTM"));
+    campaigns.push(source.utm_campaign || "Sem campanha identificada");
+    creatives.push(source.utm_content || "Sem criativo identificado");
   }
 
   const neighborhoodCounts = new Map<string, { name: string; count: number }>();
@@ -48,7 +76,10 @@ export function buildDashboardData(responses: StoredResponse[]): DashboardData {
     responses,
     total: responses.length,
     today: dailyMap.get(todayKey) ?? 0,
+    trackedResponses,
+    metaLeads,
     topCompanies: rankings(allCompanies).slice(0, 10),
+    postcardLeaders: rankings(postcardChoices).slice(0, 5),
     neighborhoods: [...neighborhoodCounts.values()]
       .sort((a, b) => b.count - a.count)
       .slice(0, 8)
@@ -60,5 +91,8 @@ export function buildDashboardData(responses: StoredResponse[]): DashboardData {
     segmentLeaders: Object.fromEntries(
       Object.entries(segmentValues).map(([segment, values]) => [segment, rankings(values).slice(0, 5)]),
     ),
+    channels: campaignBreakdown(channels, responses.length).slice(0, 5),
+    campaigns: campaignBreakdown(campaigns, responses.length).slice(0, 6),
+    creatives: campaignBreakdown(creatives, responses.length).slice(0, 6),
   };
 }

@@ -1,7 +1,7 @@
-import { Building2, CalendarDays, Database, Download, LogOut, MapPinned, Settings2, Trophy, Users } from "lucide-react";
+import { BarChart3, Building2, CalendarDays, Database, Download, LogOut, MapPinned, Megaphone, MousePointerClick, Settings2, Target, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import type { DashboardData } from "@/lib/types";
-import { DailyChart } from "@/components/dashboard-charts";
+import { CampaignChart, DailyChart } from "@/components/dashboard-charts";
 import { PixelSettings } from "@/components/pixel-settings";
 
 export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: DashboardData; pixelId: string; databaseConfigured: boolean }) {
@@ -14,6 +14,7 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
         </Link>
         <nav aria-label="Navegação do painel">
           <a className="active" href="#visao-geral"><Building2 size={18} /> Visão geral</a>
+          <a href="#campanha"><Megaphone size={18} /> Campanha</a>
           <a href="#segmentos"><Trophy size={18} /> Segmentos</a>
           <a href="#respostas"><Users size={18} /> Respostas</a>
           <a href="#configuracoes"><Settings2 size={18} /> Configurações</a>
@@ -51,6 +52,43 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
               ) : <div className="panel-empty">Os rankings aparecerão aqui.</div>}
             </article>
           </div>
+        </section>
+
+        <section id="campanha" className="dashboard-section campaign-section">
+          <div className="section-heading">
+            <div><h2>Analytics da campanha</h2><p>Leads captados por origem, campanha e criativo.</p></div>
+            <span className="tracking-badge"><Target size={16} /> {data.trackedResponses}/{data.total} com rastreamento</span>
+          </div>
+
+          <div className="campaign-metric-strip">
+            <article><span><Megaphone size={20} /></span><div><strong>{data.metaLeads}</strong><small>Leads de Meta Ads</small></div></article>
+            <article><span><BarChart3 size={20} /></span><div><strong>{data.campaigns[0]?.name ?? "—"}</strong><small>Campanha com mais leads</small></div></article>
+            <article><span><MousePointerClick size={20} /></span><div><strong>{data.creatives[0]?.name ?? "—"}</strong><small>Criativo mais identificado</small></div></article>
+          </div>
+
+          <div className="campaign-grid">
+            <article className="panel chart-panel">
+              <div className="panel-heading"><div><h2>Leads por campanha</h2><p>Baseado em <code>utm_campaign</code>.</p></div></div>
+              <CampaignChart data={data.campaigns} />
+            </article>
+            <article className="panel campaign-list-panel">
+              <div className="panel-heading"><div><h2>Origem dos leads</h2><p>Baseado em <code>utm_source</code> e <code>fbclid</code>.</p></div></div>
+              {data.channels.length ? <ol>{data.channels.map((item, index) => <li key={item.name}><b>{index + 1}</b><span>{item.name}</span><strong>{item.leads}<small>{item.share}%</small></strong></li>)}</ol> : <div className="panel-empty">As origens aparecerão aqui.</div>}
+            </article>
+          </div>
+
+          <div className="campaign-insights-grid">
+            <article className="panel campaign-list-panel">
+              <div className="panel-heading"><div><h2>Criativos e anúncios</h2><p>Compare seus links usando <code>utm_content</code>.</p></div></div>
+              {data.creatives.length ? <ol>{data.creatives.map((item, index) => <li key={item.name}><b>{index + 1}</b><span>{item.name}</span><strong>{item.leads}<small>{item.share}%</small></strong></li>)}</ol> : <div className="panel-empty">Os criativos aparecerão aqui.</div>}
+            </article>
+            <article className="panel campaign-list-panel">
+              <div className="panel-heading"><div><h2>Grande escolha</h2><p>Empresas escolhidas para o Cartão-Postal Empresarial.</p></div></div>
+              {data.postcardLeaders.length ? <ol>{data.postcardLeaders.map((item, index) => <li key={item.name}><b>{index + 1}</b><span>{item.name}</span><strong>{item.mentions}<small>votos</small></strong></li>)}</ol> : <div className="panel-empty">As escolhas aparecerão aqui.</div>}
+            </article>
+          </div>
+
+          <p className="campaign-note">Este painel mede os leads que chegaram ao formulário. Custo, alcance e CPA continuam no Gerenciador de Anúncios da Meta.</p>
         </section>
 
         <section id="segmentos" className="dashboard-section">
