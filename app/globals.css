@@ -316,12 +316,11 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 .success-note { display: flex; gap: 12px; align-items: center; max-width: 590px; margin-top: 24px; padding: 18px 20px; border-radius: 14px; background: var(--navy-900); color: #dce8f6; text-align: left; }
 .success-note svg { flex: 0 0 auto; color: var(--gold-400); }
 
-footer { display: grid; grid-template-columns: auto 1fr auto; gap: 30px; align-items: center; padding: 42px max(24px, calc((100vw - 1180px) / 2)); background: var(--navy-950); color: #aebed2; font-size: 13px; }
+footer { display: grid; grid-template-columns: auto 1fr; gap: 30px; align-items: center; padding: 42px max(24px, calc((100vw - 1180px) / 2)); background: var(--navy-950); color: #aebed2; font-size: 13px; }
 .brand-footer { color: white; }
 .brand-footer strong { font-size: 23px; }
 .brand-footer small { font-size: 7px; }
-footer p { margin: 0; text-align: center; }
-footer > a { color: var(--gold-200); text-underline-offset: 4px; }
+footer p { margin: 0; text-align: right; }
 
 button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #70b7ff; outline-offset: 3px; }
 

@@ -67,7 +67,6 @@ export default async function Home() {
           <span><strong>conecta</strong><small>CIDADES</small></span>
         </div>
         <p>Conectando empresas. Fortalecendo cidades. Criando legados.</p>
-        <a href="/admin">Área administrativa</a>
       </footer>
     </main>
   );
