@@ -1,0 +1,98 @@
+import { Building2, CalendarDays, Database, Download, LogOut, MapPinned, Settings2, Trophy, Users } from "lucide-react";
+import Link from "next/link";
+import type { DashboardData } from "@/lib/types";
+import { DailyChart } from "@/components/dashboard-charts";
+import { PixelSettings } from "@/components/pixel-settings";
+
+export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: DashboardData; pixelId: string; databaseConfigured: boolean }) {
+  return (
+    <main className="admin-shell">
+      <aside className="admin-sidebar">
+        <Link className="admin-brand" href="/">
+          <span className="brand-mark" aria-hidden="true"><i /><i /></span>
+          <span><strong>conecta</strong><small>CIDADES</small></span>
+        </Link>
+        <nav aria-label="Navegação do painel">
+          <a className="active" href="#visao-geral"><Building2 size={18} /> Visão geral</a>
+          <a href="#segmentos"><Trophy size={18} /> Segmentos</a>
+          <a href="#respostas"><Users size={18} /> Respostas</a>
+          <a href="#configuracoes"><Settings2 size={18} /> Configurações</a>
+        </nav>
+        <form action="/api/admin/logout" method="post"><button><LogOut size={17} /> Sair</button></form>
+      </aside>
+
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <div><h1>Painel da pesquisa</h1><p>Cruz das Almas · Edição histórica de 130 anos</p></div>
+          <a className="export-button" href="/api/admin/export"><Download size={18} /> Exportar CSV</a>
+        </header>
+
+        {!databaseConfigured && (
+          <div className="demo-banner"><Database size={19} /><span><b>Modo de demonstração:</b> conecte o Neon na Vercel para tornar as respostas permanentes.</span></div>
+        )}
+
+        <section id="visao-geral" className="dashboard-section">
+          <div className="metric-strip">
+            <article><span><Users size={20} /></span><div><strong>{data.total}</strong><small>Participações</small></div></article>
+            <article><span><CalendarDays size={20} /></span><div><strong>{data.today}</strong><small>Respostas hoje</small></div></article>
+            <article><span><Trophy size={20} /></span><div><strong>{data.topCompanies[0]?.name ?? "—"}</strong><small>Mais mencionada</small></div></article>
+            <article><span><MapPinned size={20} /></span><div><strong>{data.neighborhoods[0]?.name ?? "—"}</strong><small>Bairro mais ativo</small></div></article>
+          </div>
+
+          <div className="dashboard-grid">
+            <article className="panel chart-panel">
+              <div className="panel-heading"><div><h2>Participações por dia</h2><p>Últimos 14 dias com respostas</p></div></div>
+              <DailyChart data={data.daily} />
+            </article>
+            <article className="panel ranking-panel">
+              <div className="panel-heading"><div><h2>Empresas mais lembradas</h2><p>Menções em toda a pesquisa</p></div></div>
+              {data.topCompanies.length ? (
+                <ol>{data.topCompanies.slice(0, 6).map((company, index) => <li key={company.name}><b>{index + 1}</b><span>{company.name}</span><strong>{company.mentions}</strong></li>)}</ol>
+              ) : <div className="panel-empty">Os rankings aparecerão aqui.</div>}
+            </article>
+          </div>
+        </section>
+
+        <section id="segmentos" className="dashboard-section">
+          <div className="section-heading"><div><h2>Líderes por segmento</h2><p>As cinco empresas mais citadas em cada categoria.</p></div></div>
+          <div className="segment-rankings">
+            {Object.entries(data.segmentLeaders).map(([segment, companies]) => (
+              <article key={segment}>
+                <h3>{segment}</h3>
+                {companies.length ? <ol>{companies.map((company, index) => <li key={company.name}><span>{index + 1}. {company.name}</span><b>{company.mentions}</b></li>)}</ol> : <p>Aguardando respostas</p>}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="respostas" className="dashboard-section">
+          <div className="section-heading"><div><h2>Respostas recentes</h2><p>Uma visão rápida das últimas participações.</p></div><a href="/api/admin/export"><Download size={17} /> Baixar tudo</a></div>
+          <div className="responses-table-wrap">
+            <table>
+              <thead><tr><th>Participante</th><th>Bairro</th><th>Grande escolha</th><th>Data</th></tr></thead>
+              <tbody>
+                {data.responses.slice(0, 12).map((response) => (
+                  <tr key={response.id}>
+                    <td><strong>{response.name}</strong><small>{response.email}<br />{response.whatsapp}</small></td>
+                    <td>{response.neighborhood}</td>
+                    <td><strong>{response.postcardCompany}</strong><small>{response.postcardReason}</small></td>
+                    <td>{new Date(response.createdAt).toLocaleDateString("pt-BR", { timeZone: "America/Fortaleza" })}</td>
+                  </tr>
+                ))}
+                {!data.responses.length && <tr><td colSpan={4} className="table-empty">Nenhuma resposta registrada ainda.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="configuracoes" className="dashboard-section settings-section">
+          <div className="section-heading"><div><h2>Configurações da campanha</h2><p>Mensuração e conexão dos dados.</p></div></div>
+          <div className="settings-grid">
+            <article className="panel"><h3>Meta Pixel</h3><p>Configure o identificador usado nesta campanha.</p><PixelSettings initialPixelId={pixelId} /></article>
+            <article className="panel database-status"><h3>Armazenamento</h3><p>Onde as respostas da campanha são guardadas.</p><div className={databaseConfigured ? "connected" : "pending"}><Database size={22} /><span><b>{databaseConfigured ? "Neon conectado" : "Modo local"}</b><small>{databaseConfigured ? "Respostas persistentes e protegidas." : "Os dados reiniciam ao parar o servidor."}</small></span></div></article>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
