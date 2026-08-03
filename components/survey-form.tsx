@@ -81,7 +81,6 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
     }
     if (currentStep === 3) {
       if (form.postcardCompany.trim().length < 2) nextErrors.postcardCompany = "Informe a empresa escolhida.";
-      if (form.postcardReason.trim().length < 8) nextErrors.postcardReason = "Conte brevemente o motivo da escolha.";
       if (!form.consent) nextErrors.consent = "Confirme o uso dos dados para enviar sua participação.";
     }
     setErrors(nextErrors);
@@ -205,8 +204,8 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
 
         {step === 2 && (
           <fieldset>
-            <legend>Quais empresas vêm primeiro à sua mente?</legend>
-            <p className="fieldset-help">Você pode citar até três por segmento. Se não conhecer algum, pode deixar em branco.</p>
+            <legend>Os segmentos</legend>
+            <p className="fieldset-help">Em cada segmento abaixo, cite até três empresas que primeiro vêm à sua mente. Se não conhecer algum, pode deixar em branco.</p>
             <div className="segments-list">
               {form.segmentAnswers.map((item, segmentIndex) => (
                 <details key={item.segment} open={segmentIndex === 0}>
@@ -238,17 +237,16 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
         {step === 3 && (
           <fieldset>
             <legend>A grande escolha</legend>
-            <p className="fieldset-help">Imagine um Cartão-Postal Empresarial capaz de representar Cruz das Almas.</p>
+            <p className="fieldset-help">A última escolha da pesquisa.</p>
             <label className="field featured-field">
-              <span>Qual empresa você escolheria?</span>
+              <span>Se hoje fosse criado um Cartão-Postal Empresarial de Cruz das Almas, qual empresa você escolheria para representar a cidade?</span>
               <input value={form.postcardCompany} onChange={(event) => update("postcardCompany", event.target.value)} placeholder="Nome da empresa" aria-invalid={Boolean(errors.postcardCompany)} />
               {errors.postcardCompany && <small className="field-error">{errors.postcardCompany}</small>}
             </label>
             <label className="field">
-              <span>Por que você escolheu essa empresa?</span>
-              <textarea value={form.postcardReason} onChange={(event) => update("postcardReason", event.target.value)} placeholder="Conte o que torna essa empresa especial para a cidade..." rows={5} aria-invalid={Boolean(errors.postcardReason)} />
+              <span>Quer contar o motivo da escolha? (opcional)</span>
+              <textarea value={form.postcardReason} onChange={(event) => update("postcardReason", event.target.value)} placeholder="Conte o que torna essa empresa especial para a cidade..." rows={5} />
               <small className="character-count">{form.postcardReason.length}/1200</small>
-              {errors.postcardReason && <small className="field-error">{errors.postcardReason}</small>}
             </label>
             <label className={`consent ${errors.consent ? "has-error" : ""}`}>
               <input type="checkbox" checked={form.consent} onChange={(event) => update("consent", event.target.checked)} />

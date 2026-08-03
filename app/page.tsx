@@ -23,13 +23,14 @@ export default async function Home() {
       <section className="campaign-hero" id="inicio">
         <div className="hero-copy">
           <p className="hero-city">Cruz das Almas está escolhendo</p>
-          <h1>Quem é a cara<br />da nossa cidade?</h1>
+          <h1>Quais empresas são<br />a cara de Cruz das Almas?</h1>
           <p className="hero-lead">
-            Quem vive a cidade conhece quem faz a diferença. Ajude a escolher as empresas que mais representam Cruz das Almas.
+            Quem vive a cidade conhece quem faz a diferença. Participe da escolha das empresas que mais representam
+            Cruz das Almas na opinião da população.
           </p>
           <a className="primary-cta" href="#pesquisa">Responder à pesquisa <span aria-hidden="true">→</span></a>
           <div className="hero-facts" aria-label="Informações da pesquisa">
-            <span><Clock3 size={18} /> Poucos minutos</span>
+            <span><Clock3 size={18} /> Apenas alguns minutos</span>
             <span><Gift size={18} /> Concorra a prêmios</span>
             <span><ShieldCheck size={18} /> Dados protegidos</span>
           </div>

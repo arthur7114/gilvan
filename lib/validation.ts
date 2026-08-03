@@ -17,7 +17,7 @@ export const surveySchema = z.object({
     }),
   ).length(10),
   postcardCompany: z.string().trim().min(2, "Informe a empresa escolhida.").max(180),
-  postcardReason: z.string().trim().min(8, "Conte brevemente o motivo da sua escolha.").max(1200),
+  postcardReason: z.string().trim().max(1200),
   consent: z.literal(true, { error: "É necessário aceitar o uso dos dados para participar." }),
   source: z.record(z.string(), z.string().max(500)).optional(),
 });
