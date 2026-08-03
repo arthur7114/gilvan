@@ -5,8 +5,12 @@ const cleanText = z.string().trim().max(180);
 export const surveySchema = z.object({
   name: z.string().trim().min(2, "Informe seu nome.").max(120),
   whatsapp: z.string().trim().min(8, "Informe um WhatsApp válido.").max(30),
-  email: z.string().trim().email("Informe um e-mail válido.").max(160),
-  neighborhood: z.string().trim().min(2, "Informe seu bairro.").max(120),
+  email: z
+    .string()
+    .trim()
+    .max(160)
+    .refine((value) => value === "" || /^\S+@\S+\.\S+$/.test(value), "Informe um e-mail válido ou deixe em branco."),
+  neighborhood: z.string().trim().max(120),
   identityAnswers: z.array(
     z.object({ question: z.string().trim().max(240), answer: cleanText }),
   ).length(7),

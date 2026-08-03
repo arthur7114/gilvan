@@ -68,6 +68,7 @@ export function buildDashboardData(responses: StoredResponse[]): DashboardData {
   const neighborhoodCounts = new Map<string, { name: string; count: number }>();
   neighborhoods.forEach((name) => {
     const normalized = key(name);
+    if (!normalized) return;
     const current = neighborhoodCounts.get(normalized);
     neighborhoodCounts.set(normalized, { name: current?.name ?? name, count: (current?.count ?? 0) + 1 });
   });

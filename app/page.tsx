@@ -4,7 +4,9 @@ import { getPixelId } from "@/lib/db";
 import { MetaPixel } from "@/components/meta-pixel";
 import { SurveyForm } from "@/components/survey-form";
 
-export const dynamic = "force-dynamic";
+// A página é cacheada e revalidada periodicamente; alterar o Pixel no painel
+// revalida "/" na hora, então nenhuma visita paga consulta ao banco.
+export const revalidate = 300;
 
 export default async function Home() {
   const pixelId = await getPixelId();
@@ -23,7 +25,7 @@ export default async function Home() {
       <section className="campaign-hero" id="inicio">
         <div className="hero-copy">
           <p className="hero-city">Cruz das Almas está escolhendo</p>
-          <h1>Quais empresas são<br />a cara de Cruz das Almas?</h1>
+          <h1>Quais empresas são a cara de Cruz das Almas?</h1>
           <p className="hero-lead">
             Quem vive a cidade conhece quem faz a diferença. Participe da escolha das empresas que mais representam
             Cruz das Almas na opinião da população.

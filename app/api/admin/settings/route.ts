@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
 import { canUseDatabase, updatePixelId } from "@/lib/db";
@@ -12,5 +13,6 @@ export async function PUT(request: Request) {
   const parsed = pixelSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   await updatePixelId(parsed.data.pixelId);
+  revalidatePath("/");
   return NextResponse.json({ ok: true });
 }

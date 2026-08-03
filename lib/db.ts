@@ -46,7 +46,14 @@ async function ensureSchema() {
     await sql`INSERT INTO campaign_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`;
   })();
 
-  await globalThis.conectaSchemaPromise;
+  try {
+    await globalThis.conectaSchemaPromise;
+  } catch (error) {
+    // Uma falha transitória não pode deixar a promise rejeitada em cache:
+    // sem isto, toda escrita seguinte nesta instância reusaria a rejeição.
+    globalThis.conectaSchemaPromise = undefined;
+    throw error;
+  }
 }
 
 export async function insertResponse(payload: SurveyPayload): Promise<StoredResponse> {

@@ -282,19 +282,51 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 
 .segments-list { display: grid; gap: 10px; }
 .segments-list details { border-bottom: 1px solid var(--line); }
-.segments-list summary { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 18px 4px; cursor: pointer; list-style-position: outside; }
-.segments-list summary::marker { color: var(--gold-500); }
+.segments-list summary { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 18px 28px 18px 4px; cursor: pointer; list-style: none; }
+.segments-list summary::-webkit-details-marker { display: none; }
+/* Seta própria: o marker nativo desaparece com summary em grid. */
+.segments-list summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--gold-500);
+  border-bottom: 2px solid var(--gold-500);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform .18s ease;
+}
+.segments-list details[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
 .segments-list summary span { color: var(--navy-900); font-size: 18px; font-weight: 800; }
 .segments-list summary small { max-width: 360px; color: var(--muted); font-size: 12px; text-align: right; }
-.company-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 2px 2px 21px; }
+/* Uma coluna por empresa revelada: com um único campo ele ocupa a linha toda. */
+.company-inputs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 12px; padding: 2px 2px 14px; }
 .company-inputs label { display: grid; gap: 5px; }
 .company-inputs label span { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.add-company {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  margin-bottom: 7px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: #93620d;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+.add-company:hover { color: var(--navy-900); }
+.add-company svg { color: var(--gold-500); }
 
 .featured-field { margin-bottom: 23px; padding: 22px; border-radius: 14px; background: var(--paper-deep); }
 .featured-field > span { color: var(--navy-900); font-size: 18px; }
 .character-count { align-self: flex-end; margin-top: -2px; color: #7a7f88; font-size: 11px; }
 .consent { display: flex; gap: 12px; align-items: flex-start; margin-top: 25px; padding: 17px; border-radius: 12px; background: #f3f5f8; color: #42516a; font-size: 13px; line-height: 1.45; cursor: pointer; }
-.consent input { flex: 0 0 19px; width: 19px; min-height: 19px; margin: 1px 0 0; accent-color: var(--navy-800); }
+.consent input { flex: 0 0 22px; width: 22px; min-height: 22px; margin: 0; accent-color: var(--navy-800); }
 .consent.has-error { background: #fff0f0; }
 .consent-error { display: block; margin-top: 7px; }
 .submit-error { margin-top: 18px; padding: 13px 15px; border-radius: 12px; background: #fff0f0; color: var(--danger); font-size: 14px; font-weight: 600; }
@@ -347,13 +379,14 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .brand strong { font-size: 23px; }
   .brand small { font-size: 7px; letter-spacing: 5px; }
   .edition { max-width: 128px; padding: 6px 9px; font-size: 9px; line-height: 1.25; text-align: center; }
-  .campaign-hero { gap: 28px; padding: 112px 20px 54px; }
+  .campaign-hero { gap: 28px; padding: 94px 20px 54px; }
   .hero-city { font-size: 12px; }
-  .hero-copy h1 { font-size: clamp(3.7rem, 17.5vw, 4.55rem); }
-  .hero-copy h1::after { margin: 22px 0 18px; }
-  .hero-lead { margin-bottom: 24px; font-size: 16px; }
+  /* Mantém a ação dourada dentro da primeira dobra em telas de 640px de altura. */
+  .hero-copy h1 { font-size: clamp(2.85rem, 13.4vw, 3.85rem); }
+  .hero-copy h1::after { margin: 20px 0 16px; }
+  .hero-lead { margin-bottom: 22px; font-size: 16px; }
   .primary-cta { width: 100%; }
-  .hero-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; margin-top: 24px; }
+  .hero-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; margin-top: 20px; }
   .hero-facts span:last-child { grid-column: 1 / -1; }
   .campaign-art { width: 88vw; }
   .campaign-art figcaption { font-size: 12px; }
@@ -373,9 +406,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .field-grid { grid-template-columns: 1fr; gap: 20px; }
   .question-stack { gap: 24px; }
   .question-field > span { font-size: 14px; }
-  .segments-list summary { grid-template-columns: 1fr; gap: 3px; padding: 17px 3px; }
+  .segments-list summary { grid-template-columns: 1fr; gap: 3px; padding: 17px 28px 17px 3px; }
   .segments-list summary small { text-align: left; }
-  .company-inputs { grid-template-columns: 1fr; gap: 13px; }
+  .company-inputs { grid-auto-flow: row; grid-auto-columns: auto; gap: 13px; }
   .featured-field { margin-inline: -6px; padding: 18px; }
   .consent { margin-inline: -5px; }
   .form-actions { padding: 18px 22px; }
