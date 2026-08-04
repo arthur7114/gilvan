@@ -16,8 +16,7 @@ export default async function Home() {
       <MetaPixel pixelId={pixelId} />
       <header className="site-header">
         <a className="brand" href="#inicio" aria-label="Conecta Cidades — início">
-          <span className="brand-mark" aria-hidden="true"><i /><i /></span>
-          <span><strong>conecta</strong><small>CIDADES</small></span>
+          <Image src="/logo-conecta-cidades.png" alt="Conecta Cidades" width={1178} height={511} priority />
         </a>
         <span className="edition">Edição histórica · 130 anos</span>
       </header>
@@ -66,8 +65,7 @@ export default async function Home() {
 
       <footer>
         <div className="brand brand-footer" aria-label="Conecta Cidades">
-          <span className="brand-mark" aria-hidden="true"><i /><i /></span>
-          <span><strong>conecta</strong><small>CIDADES</small></span>
+          <Image src="/logo-conecta-cidades.png" alt="Conecta Cidades" width={1178} height={511} />
         </div>
         <p>Conectando empresas. Fortalecendo cidades. Criando legados.</p>
       </footer>
