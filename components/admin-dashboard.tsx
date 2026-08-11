@@ -172,7 +172,7 @@ export function AdminDashboard({
             </article>
             <article className="panel campaign-list-panel">
               <div className="panel-heading"><div><h2>Grande escolha</h2><p>Empresas escolhidas para o Cartão-Postal Empresarial.</p></div></div>
-              {data.postcardLeaders.length ? <ol>{data.postcardLeaders.map((item, index) => <li key={item.name}><b>{index + 1}</b><span>{item.name}</span><strong>{item.mentions}<small>votos</small></strong></li>)}</ol> : <div className="panel-empty">As escolhas aparecerão aqui.</div>}
+              {data.postcardLeaders.length ? <ol>{data.postcardLeaders.map((item, index) => <li key={item.name}><b>{index + 1}</b><span>{item.name}</span><strong>{item.mentions}<small>{item.respondents} pessoas</small></strong></li>)}</ol> : <div className="panel-empty">As escolhas aparecerão aqui.</div>}
             </article>
           </div>
 
@@ -185,7 +185,7 @@ export function AdminDashboard({
             {Object.entries(data.segmentLeaders).map(([segment, companies]) => (
               <article key={segment}>
                 <h3>{segment}</h3>
-                {companies.length ? <ol>{companies.map((company, index) => <li key={company.name}><span>{index + 1}. {company.name}</span><b title={`${company.respondents} pessoas citaram`}>{company.mentions}</b></li>)}</ol> : <p>Aguardando respostas</p>}
+                {companies.length ? <ol>{companies.map((company, index) => <li key={company.name}><span>{index + 1}. {company.name}</span><b>{company.mentions}<small>{company.respondents} pessoas</small></b></li>)}</ol> : <p>Aguardando respostas</p>}
               </article>
             ))}
           </div>
