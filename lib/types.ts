@@ -1,30 +1,13 @@
-export const identityQuestions = [
-  "Na sua opinião, qual empresa mais representa Cruz das Almas?",
-  "Qual empresa você indicaria para alguém que está visitando Cruz das Almas pela primeira vez?",
-  "Qual empresa faz parte da história de Cruz das Almas?",
-  "Qual empresa transmite mais confiança?",
-  "Qual empresa mais contribui para o desenvolvimento da cidade?",
-  "Qual empresa merece ser mais conhecida pela população?",
-  "Qual empresa é motivo de orgulho para Cruz das Almas?",
-] as const;
+import type { SurveySlug } from "./campaigns.ts";
+import type { TelemetrySummary } from "./telemetry-analytics.ts";
 
-export const segments = [
-  "Gastronomia",
-  "Saúde",
-  "Moda",
-  "Comércio",
-  "Construção",
-  "Beleza",
-  "Educação",
-  "Agronegócio",
-  "Serviços",
-  "Tecnologia",
-] as const;
+export { segments } from "./campaigns.ts";
 
 export type IdentityAnswer = { question: string; answer: string };
 export type SegmentAnswer = { segment: string; companies: string[] };
 
 export type SurveyPayload = {
+  surveySlug: SurveySlug;
   name: string;
   whatsapp: string;
   email: string;
@@ -48,12 +31,13 @@ export type DashboardData = {
   today: number;
   trackedResponses: number;
   metaLeads: number;
-  topCompanies: Array<{ name: string; mentions: number }>;
-  postcardLeaders: Array<{ name: string; mentions: number }>;
+  topCompanies: Array<{ name: string; mentions: number; respondents: number }>;
+  postcardLeaders: Array<{ name: string; mentions: number; respondents: number }>;
   neighborhoods: Array<{ name: string; responses: number }>;
   daily: Array<{ date: string; responses: number }>;
-  segmentLeaders: Record<string, Array<{ name: string; mentions: number }>>;
+  segmentLeaders: Record<string, Array<{ name: string; mentions: number; respondents: number }>>;
   channels: Array<{ name: string; leads: number; share: number }>;
   campaigns: Array<{ name: string; leads: number; share: number }>;
   creatives: Array<{ name: string; leads: number; share: number }>;
+  telemetry: TelemetrySummary;
 };

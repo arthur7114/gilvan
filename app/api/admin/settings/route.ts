@@ -14,5 +14,6 @@ export async function PUT(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   await updatePixelId(parsed.data.pixelId);
   revalidatePath("/");
+  revalidatePath("/tutoia");
   return NextResponse.json({ ok: true });
 }

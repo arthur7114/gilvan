@@ -12,12 +12,12 @@ Next.js com React e TypeScript, hospedado na Vercel, com Neon Postgres para pers
 
 ## Users
 
-- Moradores e pessoas que conhecem Cruz das Almas, respondendo pelo celular após chegar por anúncios no Meta.
+- Moradores e pessoas que conhecem Cruz das Almas ou Tutóia, respondendo pelo celular após chegar por anúncios no Meta.
 - Equipe do Conecta Cidades, acompanhando a participação, analisando empresas citadas e exportando os dados.
 
 ## Product Purpose
 
-Realizar uma pesquisa pública sobre as empresas que mais representam Cruz das Almas, preservar as respostas e oferecer análise e exportação para a equipe do projeto. O sucesso significa uma jornada rápida para o participante, respostas válidas salvas e dados acionáveis para a organização.
+Realizar pesquisas públicas sobre as empresas que mais representam cada cidade, preservar as respostas sem misturar campanhas e oferecer análise, funil e exportação para a equipe do projeto. O sucesso significa uma jornada rápida para o participante, respostas válidas salvas e dados acionáveis para a organização.
 
 ## Positioning
 
@@ -42,13 +42,14 @@ O tráfego chega principalmente por Meta Ads em dispositivos móveis. O particip
 
 - Nome institucional: Conecta Cidades.
 - Campanha: “Cruz das Almas está escolhendo”.
+- Campanha: “Tutóia está escolhendo”, edição histórica rumo aos 89 anos.
 - Frase institucional: “A identidade de uma cidade também é construída pelas empresas que fazem parte da sua história.”
 - Preservar a linguagem visual do criativo fornecido: azul-marinho, dourado, patrimônio histórico, celebração cívica e tom de orgulho local.
 
 ## Evidence on Hand
 
 - Roteiro completo da pesquisa fornecido pelo usuário.
-- Criativo de campanha em `/var/folders/63/28wl145s0d33d5swmny3ynp00000gn/T/codex-clipboard-ad4c95d8-60de-4825-a230-7aae250c0319.png`.
+- Criativos oficiais versionados em `public/criativo-conecta-cidades.png` e `public/criativo-tutoia.png`.
 - Não há resultados, depoimentos ou empresas vencedoras previamente confirmados; o produto não deve inventá-los.
 
 ## Product Principles

@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-export function MetaPixel({ pixelId }: { pixelId: string }) {
+export function MetaPixel({ pixelId, surveySlug, campaignName }: { pixelId: string; surveySlug: string; campaignName: string }) {
   useEffect(() => {
     if (!pixelId || window.fbq) return;
     const fbq = function (...args: unknown[]) {
@@ -34,8 +34,8 @@ export function MetaPixel({ pixelId }: { pixelId: string }) {
     script.src = "https://connect.facebook.net/en_US/fbevents.js";
     document.head.appendChild(script);
     fbq("init", pixelId);
-    fbq("track", "PageView");
-  }, [pixelId]);
+    fbq("track", "PageView", { content_category: "survey", content_name: campaignName, survey_slug: surveySlug });
+  }, [campaignName, pixelId, surveySlug]);
 
   if (!pixelId) return null;
   return (

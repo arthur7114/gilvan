@@ -1,6 +1,6 @@
-# Pesquisa Conecta Cidades
+# Pesquisas Conecta Cidades
 
-Aplicação Next.js da campanha “Cruz das Almas está escolhendo”. Inclui formulário público, painel administrativo, análise das respostas, exportação CSV e Meta Pixel.
+Aplicação Next.js das campanhas “Cruz das Almas está escolhendo” e “Tutóia está escolhendo”. Inclui formulários públicos, painel administrativo separado por campanha, funil anônimo, análise das respostas, exportação CSV e Meta Pixel.
 
 ## Rodar localmente
 
@@ -27,8 +27,11 @@ As tabelas são criadas automaticamente na primeira utilização. O evento `Lead
 ## Rotas
 
 - `/` — campanha e pesquisa pública.
+- `/tutoia` — campanha e pesquisa pública de Tutóia.
 - `/admin` — painel protegido por senha.
-- `/api/admin/export` — exportação CSV autenticada.
+- `/api/admin/export?survey=tutoia` — exportação CSV autenticada da campanha selecionada.
+
+O painel abre Tutóia por padrão e permite alternar para Cruz das Almas sem misturar respostas. A telemetria guarda apenas sessão anônima, etapa, duração e códigos de erro; conteúdo digitado e dados de contato não são enviados para `survey_events`.
 
 ## Antes de divulgar
 

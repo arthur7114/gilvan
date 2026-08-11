@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, LoaderCircle, Plus, Sparkles } from "lucide-react";
-import { identityQuestions, segments, type SurveyPayload } from "@/lib/types";
+import { segments, type SurveyConfig } from "@/lib/campaigns";
+import type { SurveyPayload } from "@/lib/types";
 
 const stepLabels = ["Identidade", "Segmentos", "Grande escolha", "Contato"];
 const segmentHints: Record<string, string> = {
@@ -11,18 +12,36 @@ const segmentHints: Record<string, string> = {
   Moda: "Lojas de roupas, calçados, acessórios e similares",
 };
 
-const initialForm: SurveyPayload = {
-  name: "",
-  whatsapp: "",
-  email: "",
-  neighborhood: "",
-  identityAnswers: identityQuestions.map((question) => ({ question, answer: "" })),
-  segmentAnswers: segments.map((segment) => ({ segment, companies: ["", "", ""] })),
-  postcardCompany: "",
-  postcardReason: "",
-  consent: false,
-  source: {},
-};
+function initialForm(campaign: SurveyConfig): SurveyPayload {
+  return {
+    surveySlug: campaign.slug,
+    name: "",
+    whatsapp: "",
+    email: "",
+    neighborhood: "",
+    identityAnswers: campaign.identityQuestions.map((question) => ({ question, answer: "" })),
+    segmentAnswers: segments.map((segment) => ({ segment, companies: ["", "", ""] })),
+    postcardCompany: "",
+    postcardReason: "",
+    consent: false,
+    source: {},
+  };
+}
+
+function campaignSource() {
+  const params = new URLSearchParams(window.location.search);
+  return Object.fromEntries(
+    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"]
+      .map((key) => [key, params.get(key) ?? ""])
+      .filter(([, value]) => value),
+  );
+}
+
+function deviceClass() {
+  if (window.innerWidth < 640) return "mobile" as const;
+  if (window.innerWidth < 1024) return "tablet" as const;
+  return "desktop" as const;
+}
 
 function Field({ label, name, value, onChange, placeholder, type = "text", autoComplete, error }: {
   label: string;
@@ -52,9 +71,9 @@ function Field({ label, name, value, onChange, placeholder, type = "text", autoC
   );
 }
 
-export function SurveyForm({ pixelId }: { pixelId: string }) {
+export function SurveyForm({ pixelId, campaign }: { pixelId: string; campaign: SurveyConfig }) {
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<SurveyPayload>(initialForm);
+  const [form, setForm] = useState<SurveyPayload>(() => initialForm(campaign));
   const [visibleCompanies, setVisibleCompanies] = useState<number[]>(() => segments.map(() => 1));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -62,17 +81,54 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
   const [submitError, setSubmitError] = useState("");
   const [companyWebsite, setCompanyWebsite] = useState("");
   const started = useRef(false);
+  const sessionId = useRef("");
+  const source = useRef<Record<string, string>>({});
+  const stepStartedAt = useRef(0);
 
   const progress = useMemo(() => ((step + 1) / stepLabels.length) * 100, [step]);
 
+  useEffect(() => {
+    const storageKey = `conecta-survey-session:${campaign.slug}`;
+    const existing = window.sessionStorage.getItem(storageKey);
+    sessionId.current = existing || crypto.randomUUID();
+    if (!existing) window.sessionStorage.setItem(storageKey, sessionId.current);
+    source.current = campaignSource();
+    stepStartedAt.current = performance.now();
+    emitTelemetry("survey_view", { step: 1 });
+    emitTelemetry("step_view", { step: 1 });
+    // A visualização só deve ser registrada uma vez por montagem da campanha.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign.slug]);
+
+  function emitTelemetry(
+    eventName: "survey_view" | "survey_start" | "step_view" | "step_complete" | "step_back" | "validation_error" | "add_company" | "submit_attempt" | "submit_success" | "submit_error",
+    fields: { step?: number; fieldId?: "identity0" | "postcardCompany" | "name" | "whatsapp" | "email" | "consent" | "form"; errorCode?: "required" | "invalid_phone" | "invalid_email" | "consent_required" | "submit_failed"; durationMs?: number } = {},
+  ) {
+    if (!sessionId.current) return;
+    void fetch("/api/telemetry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        surveySlug: campaign.slug,
+        sessionId: sessionId.current,
+        eventName,
+        deviceClass: deviceClass(),
+        source: source.current,
+        ...fields,
+      }),
+      keepalive: true,
+    }).catch(() => undefined);
+  }
+
   function track(event: string, params: Record<string, string | number> = {}) {
     if (!pixelId || !window.fbq) return;
-    window.fbq("trackCustom", event, params);
+    window.fbq("trackCustom", event, { survey_slug: campaign.slug, campaign_name: campaign.heroLabel, ...params });
   }
 
   function markStarted() {
     if (started.current) return;
     started.current = true;
+    emitTelemetry("survey_start", { step: step + 1 });
     track("PesquisaIniciada");
   }
 
@@ -83,6 +139,8 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
   }
 
   function revealCompany(segmentIndex: number) {
+    markStarted();
+    emitTelemetry("add_company", { step: 2 });
     setVisibleCompanies((current) =>
       current.map((count, index) => (index === segmentIndex ? Math.min(count + 1, 3) : count)),
     );
@@ -105,52 +163,76 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
       if (!form.consent) nextErrors.consent = "Confirme o uso dos dados para enviar sua participação.";
     }
     setErrors(nextErrors);
+    Object.keys(nextErrors).forEach((fieldId) => {
+      const errorCode = fieldId === "whatsapp"
+        ? "invalid_phone"
+        : fieldId === "email"
+          ? "invalid_email"
+          : fieldId === "consent"
+            ? "consent_required"
+            : "required";
+      emitTelemetry("validation_error", {
+        step: currentStep + 1,
+        fieldId: fieldId as "identity0" | "postcardCompany" | "name" | "whatsapp" | "email" | "consent",
+        errorCode,
+      });
+    });
     return Object.keys(nextErrors).length === 0;
   }
 
   function nextStep() {
     if (!validateStep(step)) return;
+    emitTelemetry("step_complete", { step: step + 1, durationMs: Math.round(performance.now() - stepStartedAt.current) });
     track("PesquisaEtapa", { step: step + 1, step_name: stepLabels[step] });
-    setStep((current) => Math.min(current + 1, stepLabels.length - 1));
+    const next = Math.min(step + 1, stepLabels.length - 1);
+    setStep(next);
+    stepStartedAt.current = performance.now();
+    emitTelemetry("step_view", { step: next + 1 });
     document.querySelector(".survey-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function previousStep() {
+    emitTelemetry("step_back", { step: step + 1 });
     setErrors({});
-    setStep((current) => Math.max(current - 1, 0));
+    const previous = Math.max(step - 1, 0);
+    setStep(previous);
+    stepStartedAt.current = performance.now();
+    emitTelemetry("step_view", { step: previous + 1 });
     document.querySelector(".survey-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!validateStep(3)) return;
+    emitTelemetry("step_complete", { step: 4, durationMs: Math.round(performance.now() - stepStartedAt.current) });
+    emitTelemetry("submit_attempt", { step: 4 });
     setSubmitting(true);
     setSubmitError("");
-
-    const params = new URLSearchParams(window.location.search);
-    const source = Object.fromEntries(
-      ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"]
-        .map((key) => [key, params.get(key) ?? ""])
-        .filter(([, value]) => value),
-    );
 
     try {
       const response = await fetch("/api/responses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, source, companyWebsite }),
+        body: JSON.stringify({ ...form, source: source.current, companyWebsite }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Não foi possível salvar sua resposta.");
 
       track("PesquisaEtapa", { step: 4, step_name: stepLabels[3] });
+      emitTelemetry("submit_success", { step: 4 });
       if (pixelId && window.fbq) {
-        window.fbq("track", "Lead", { content_name: "Pesquisa Conecta Cidades — Cruz das Almas" }, { eventID: result.id });
+        window.fbq(
+          "track",
+          "Lead",
+          { content_name: `Pesquisa Conecta Cidades — ${campaign.city}`, survey_slug: campaign.slug },
+          { eventID: result.id },
+        );
       }
       setSubmitted(true);
       document.querySelector(".survey-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
     } catch (error) {
       track("PesquisaFalhaEnvio");
+      emitTelemetry("submit_error", { step: 4, fieldId: "form", errorCode: "submit_failed" });
       setSubmitError(error instanceof Error ? error.message : "Não foi possível enviar. Tente novamente.");
     } finally {
       setSubmitting(false);
@@ -162,8 +244,8 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
       <div className="survey-card success-state" role="status">
         <div className="success-seal"><CheckCircle2 size={42} /></div>
         <p className="success-overline">Participação registrada</p>
-        <h2>Obrigado por ser a voz de Cruz das Almas.</h2>
-        <p>Sua opinião ajuda a valorizar as empresas que constroem a identidade da nossa cidade.</p>
+        <h2>{campaign.successTitle}</h2>
+        <p>{campaign.successDescription}</p>
         <div className="success-note">
           <Sparkles size={20} />
           <span>Acompanhe os próximos conteúdos e o desenvolvimento deste projeto pelo Instagram do Conecta Cidades.</span>
@@ -257,7 +339,7 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
             <legend>A grande escolha</legend>
             <p className="fieldset-help">A última escolha da pesquisa.</p>
             <label className="field featured-field">
-              <span>Se hoje fosse criado um Cartão-Postal Empresarial de Cruz das Almas, qual empresa você escolheria para representar a cidade?</span>
+              <span>{campaign.postcardQuestion}</span>
               <input
                 value={form.postcardCompany}
                 onChange={(event) => update("postcardCompany", event.target.value)}
@@ -281,7 +363,7 @@ export function SurveyForm({ pixelId }: { pixelId: string }) {
             <p className="fieldset-help">Suas respostas estão prontas. O contato identifica sua participação e permite avisar você caso seja contemplado.</p>
             <div className="field-grid">
               <Field label="Nome completo" name="name" value={form.name} onChange={(value) => update("name", value)} placeholder="Como podemos chamar você?" autoComplete="name" error={errors.name} />
-              <Field label="WhatsApp" name="whatsapp" value={form.whatsapp} onChange={(value) => update("whatsapp", value)} placeholder="(75) 99999-9999" type="tel" autoComplete="tel" error={errors.whatsapp} />
+              <Field label="WhatsApp" name="whatsapp" value={form.whatsapp} onChange={(value) => update("whatsapp", value)} placeholder={campaign.phonePlaceholder} type="tel" autoComplete="tel" error={errors.whatsapp} />
               <Field label="E-mail (opcional)" name="email" value={form.email} onChange={(value) => update("email", value)} placeholder="voce@email.com" type="email" autoComplete="email" error={errors.email} />
               <Field label="Bairro (opcional)" name="neighborhood" value={form.neighborhood} onChange={(value) => update("neighborhood", value)} placeholder="Em qual bairro você mora?" autoComplete="address-level3" error={errors.neighborhood} />
             </div>

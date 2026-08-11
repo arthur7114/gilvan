@@ -1,12 +1,39 @@
-import { BarChart3, Building2, CalendarDays, Database, Download, LogOut, MapPinned, Megaphone, MousePointerClick, Settings2, Target, Trophy, Users } from "lucide-react";
+import { Activity, BarChart3, Building2, CalendarDays, Clock3, Database, Download, LogOut, MapPinned, Megaphone, MousePointerClick, Settings2, Target, TriangleAlert, Trophy, Users } from "lucide-react";
 import Link from "next/link";
+import { campaigns, type SurveyConfig } from "@/lib/campaigns";
 import type { DashboardData } from "@/lib/types";
 import { CampaignChart, DailyChart } from "@/components/dashboard-charts";
 import { PixelSettings } from "@/components/pixel-settings";
 
-export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: DashboardData; pixelId: string; databaseConfigured: boolean }) {
+function formatDuration(milliseconds: number) {
+  const seconds = Math.round(milliseconds / 1_000);
+  return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}min ${seconds % 60}s`;
+}
+
+const fieldLabels: Record<string, string> = {
+  identity0: "Primeira pergunta",
+  postcardCompany: "Grande escolha",
+  name: "Nome",
+  whatsapp: "WhatsApp",
+  email: "E-mail",
+  consent: "Consentimento",
+  form: "Envio",
+};
+
+export function AdminDashboard({
+  data,
+  pixelId,
+  databaseConfigured,
+  selectedCampaign,
+}: {
+  data: DashboardData;
+  pixelId: string;
+  databaseConfigured: boolean;
+  selectedCampaign: SurveyConfig;
+}) {
+  const exportHref = `/api/admin/export?survey=${selectedCampaign.slug}`;
   const exportControl = databaseConfigured
-    ? <a className="export-button" href="/api/admin/export"><Download size={18} /> Exportar CSV</a>
+    ? <a className="export-button" href={exportHref}><Download size={18} /> Exportar CSV</a>
     : <button className="export-button" disabled title="Conecte o Neon para liberar a exportação."><Download size={18} /> Exportar CSV</button>;
 
   return (
@@ -18,6 +45,7 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
         </Link>
         <nav aria-label="Navegação do painel">
           <a className="active" href="#visao-geral"><Building2 size={18} /> Visão geral</a>
+          <a href="#funil"><Activity size={18} /> Funil</a>
           <a href="#campanha"><Megaphone size={18} /> Campanha</a>
           <a href="#segmentos"><Trophy size={18} /> Segmentos</a>
           <a href="#respostas"><Users size={18} /> Respostas</a>
@@ -28,12 +56,27 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
 
       <div className="admin-main">
         <header className="admin-topbar">
-          <div><h1>Painel da pesquisa</h1><p>Cruz das Almas · Edição histórica de 130 anos</p></div>
+          <div><h1>Painel da pesquisa</h1><p>{selectedCampaign.city} · {selectedCampaign.edition}</p></div>
           {exportControl}
         </header>
 
+        <nav className="campaign-switcher" aria-label="Selecionar pesquisa">
+          <span>Resultados de</span>
+          {Object.values(campaigns).map((campaign) => (
+            <Link
+              key={campaign.slug}
+              href={`/admin?survey=${campaign.slug}`}
+              className={campaign.slug === selectedCampaign.slug ? "active" : ""}
+              aria-current={campaign.slug === selectedCampaign.slug ? "page" : undefined}
+            >
+              <strong>{campaign.city}</strong>
+              <small>{campaign.state}</small>
+            </Link>
+          ))}
+        </nav>
+
         {!databaseConfigured && (
-          <div className="demo-banner"><Database size={19} /><span><b>Banco ainda não conectado:</b> conecte o Neon na Vercel antes de divulgar a pesquisa. Sem isso, nenhuma participação será registrada.</span></div>
+          <div className="demo-banner"><Database size={19} /><span><b>Banco ainda não conectado:</b> conecte o Neon na Vercel antes de divulgar a pesquisa. Sem isso, nenhuma participação será persistida.</span></div>
         )}
 
         <section id="visao-geral" className="dashboard-section">
@@ -52,9 +95,50 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
             <article className="panel ranking-panel">
               <div className="panel-heading"><div><h2>Empresas mais lembradas</h2><p>Menções em toda a pesquisa</p></div></div>
               {data.topCompanies.length ? (
-                <ol>{data.topCompanies.slice(0, 6).map((company, index) => <li key={company.name}><b>{index + 1}</b><span>{company.name}</span><strong>{company.mentions}</strong></li>)}</ol>
+                <ol>{data.topCompanies.slice(0, 6).map((company, index) => <li key={company.name}><b>{index + 1}</b><span>{company.name}</span><strong>{company.mentions}<small>{company.respondents} pessoas</small></strong></li>)}</ol>
               ) : <div className="panel-empty">Os rankings aparecerão aqui.</div>}
             </article>
+          </div>
+        </section>
+
+        <section id="funil" className="dashboard-section funnel-section">
+          <div className="section-heading">
+            <div><h2>Funil e pontos de fricção</h2><p>Sessões anônimas da pesquisa de {selectedCampaign.city}. Sessões ativas há menos de 30 minutos não contam como abandono.</p></div>
+            <span className="tracking-badge"><Activity size={16} /> {data.telemetry.completionRate}% de conclusão</span>
+          </div>
+
+          <div className="campaign-metric-strip telemetry-metrics">
+            <article><span><Users size={20} /></span><div><strong>{data.telemetry.totalSessions}</strong><small>Visualizações medidas</small></div></article>
+            <article><span><MousePointerClick size={20} /></span><div><strong>{data.telemetry.startedSessions}</strong><small>Pesquisas iniciadas</small></div></article>
+            <article><span><TriangleAlert size={20} /></span><div><strong>{data.telemetry.abandonedSessions}</strong><small>Sessões abandonadas</small></div></article>
+          </div>
+
+          <div className="funnel-grid">
+            <article className="panel funnel-panel">
+              <div className="panel-heading"><div><h2>Conversão por etapa</h2><p>Pessoas únicas por sessão, não quantidade de eventos.</p></div></div>
+              {data.telemetry.totalSessions ? (
+                <ol className="funnel-list">
+                  {data.telemetry.funnel.map((stage) => (
+                    <li key={stage.key}>
+                      <div><strong>{stage.label}</strong><small>{stage.dropOffRate ? `${stage.dropOffRate}% de queda na etapa` : "Entrada do funil"}</small></div>
+                      <span><i style={{ width: `${Math.max(stage.conversionRate, 3)}%` }} /></span>
+                      <b>{stage.sessions}<small>{stage.conversionRate}%</small></b>
+                    </li>
+                  ))}
+                </ol>
+              ) : <div className="panel-empty">O funil começará a aparecer após a publicação da telemetria.</div>}
+            </article>
+
+            <div className="friction-stack">
+              <article className="panel friction-panel">
+                <div className="panel-heading"><div><h2>Tempo por etapa</h2><p>Mediana até a primeira conclusão válida.</p></div></div>
+                {data.telemetry.stepDurations.length ? <ol>{data.telemetry.stepDurations.map((item) => <li key={item.step}><span><Clock3 size={15} /> Etapa {item.step}</span><strong>{formatDuration(item.medianMs)}<small>{item.samples} sessões</small></strong></li>)}</ol> : <div className="compact-empty">Aguardando sessões concluídas.</div>}
+              </article>
+              <article className="panel friction-panel">
+                <div className="panel-heading"><div><h2>Erros mais frequentes</h2><p>Somente campo e tipo de erro; nenhum conteúdo digitado.</p></div></div>
+                {data.telemetry.validationErrors.length ? <ol>{data.telemetry.validationErrors.slice(0, 5).map((item) => <li key={`${item.fieldId}:${item.errorCode}`}><span>{fieldLabels[item.fieldId] ?? item.fieldId}</span><strong>{item.count}<small>ocorrências</small></strong></li>)}</ol> : <div className="compact-empty">Nenhum erro medido ainda.</div>}
+              </article>
+            </div>
           </div>
         </section>
 
@@ -101,14 +185,14 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
             {Object.entries(data.segmentLeaders).map(([segment, companies]) => (
               <article key={segment}>
                 <h3>{segment}</h3>
-                {companies.length ? <ol>{companies.map((company, index) => <li key={company.name}><span>{index + 1}. {company.name}</span><b>{company.mentions}</b></li>)}</ol> : <p>Aguardando respostas</p>}
+                {companies.length ? <ol>{companies.map((company, index) => <li key={company.name}><span>{index + 1}. {company.name}</span><b title={`${company.respondents} pessoas citaram`}>{company.mentions}</b></li>)}</ol> : <p>Aguardando respostas</p>}
               </article>
             ))}
           </div>
         </section>
 
         <section id="respostas" className="dashboard-section">
-          <div className="section-heading"><div><h2>Respostas recentes</h2><p>Uma visão rápida das últimas participações.</p></div>{databaseConfigured ? <a href="/api/admin/export"><Download size={17} /> Baixar tudo</a> : <span className="export-unavailable">Exportação disponível após conectar o Neon.</span>}</div>
+          <div className="section-heading"><div><h2>Respostas recentes</h2><p>Uma visão rápida das últimas participações de {selectedCampaign.city}.</p></div>{databaseConfigured ? <a href={exportHref}><Download size={17} /> Baixar esta pesquisa</a> : <span className="export-unavailable">Exportação disponível após conectar o Neon.</span>}</div>
           <div className="responses-table-wrap">
             <table>
               <thead><tr><th>Participante</th><th>Bairro</th><th>Grande escolha</th><th>Data</th></tr></thead>
@@ -130,7 +214,7 @@ export function AdminDashboard({ data, pixelId, databaseConfigured }: { data: Da
         <section id="configuracoes" className="dashboard-section settings-section">
           <div className="section-heading"><div><h2>Configurações da campanha</h2><p>Mensuração e conexão dos dados.</p></div></div>
           <div className="settings-grid">
-            <article className="panel"><h3>Meta Pixel</h3><p>Configure o identificador usado nesta campanha.</p><PixelSettings initialPixelId={pixelId} disabled={!databaseConfigured} /></article>
+            <article className="panel"><h3>Meta Pixel global</h3><p>O mesmo Pixel atende todas as campanhas; cada evento leva o slug da pesquisa.</p><PixelSettings initialPixelId={pixelId} disabled={!databaseConfigured} /></article>
             <article className="panel database-status"><h3>Armazenamento</h3><p>Onde as respostas da campanha são guardadas.</p><div className={databaseConfigured ? "connected" : "pending"}><Database size={22} /><span><b>{databaseConfigured ? "Neon conectado" : "Neon pendente"}</b><small>{databaseConfigured ? "Respostas persistentes e protegidas." : "Configure DATABASE_URL na Vercel antes de publicar a campanha."}</small></span></div></article>
           </div>
         </section>

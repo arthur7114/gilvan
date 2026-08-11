@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
 import { canUseDatabase, listResponses } from "@/lib/db";
-import { identityQuestions, segments } from "@/lib/types";
+import { activeSurveySlug, campaigns, resolveSurveySlug, segments } from "@/lib/campaigns";
 
 function safeCell(value: unknown) {
   let text = String(value ?? "").replace(/\r?\n/g, " ");
@@ -9,7 +9,7 @@ function safeCell(value: unknown) {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Acesso não autorizado." }, { status: 401 });
   if (!canUseDatabase()) {
     return NextResponse.json(
@@ -17,15 +17,21 @@ export async function GET() {
       { status: 503 },
     );
   }
-  const responses = await listResponses();
+  const requestedSurvey = new URL(request.url).searchParams.get("survey");
+  const surveySlug = requestedSurvey ? resolveSurveySlug(requestedSurvey) : activeSurveySlug;
+  if (!surveySlug) return NextResponse.json({ error: "Pesquisa não encontrada." }, { status: 400 });
+  const campaign = campaigns[surveySlug];
+  const responses = await listResponses(surveySlug);
   const headers = [
-    "ID", "Data", "Nome", "WhatsApp", "E-mail", "Bairro",
-    ...identityQuestions.map((_, index) => `Identidade ${index + 1}`),
+    "ID", "Pesquisa", "Cidade", "Data", "Nome", "WhatsApp", "E-mail", "Bairro",
+    ...campaign.identityQuestions.map((_, index) => `Identidade ${index + 1}`),
     ...segments.flatMap((segment) => [1, 2, 3].map((index) => `${segment} ${index}`)),
-    "Cartão-postal empresarial", "Motivo", "UTM Source", "UTM Medium", "UTM Campaign", "FBCLID",
+    "Cartão-postal empresarial", "Motivo", "UTM Source", "UTM Medium", "UTM Campaign", "UTM Content", "UTM Term", "FBCLID",
   ];
   const rows = responses.map((response) => [
     response.id,
+    response.surveySlug,
+    campaign.city,
     new Date(response.createdAt).toLocaleString("pt-BR", { timeZone: "America/Fortaleza" }),
     response.name,
     response.whatsapp,
@@ -41,6 +47,8 @@ export async function GET() {
     response.source?.utm_source,
     response.source?.utm_medium,
     response.source?.utm_campaign,
+    response.source?.utm_content,
+    response.source?.utm_term,
     response.source?.fbclid,
   ]);
   const csv = `\uFEFF${[headers, ...rows].map((row) => row.map(safeCell).join(";")).join("\r\n")}`;
@@ -48,7 +56,7 @@ export async function GET() {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="respostas-conecta-cidades-${date}.csv"`,
+      "Content-Disposition": `attachment; filename="respostas-conecta-cidades-${surveySlug}-${date}.csv"`,
       "Cache-Control": "no-store",
     },
   });

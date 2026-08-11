@@ -1,14 +1,17 @@
 import { neon } from "@neondatabase/serverless";
+import type { SurveySlug } from "@/lib/campaigns";
+import type { SurveyEventRecord } from "@/lib/telemetry-analytics";
 import type { StoredResponse, SurveyPayload } from "@/lib/types";
 
-type MemoryStore = { responses: StoredResponse[]; pixelId: string };
+type MemoryStore = { responses: StoredResponse[]; events: SurveyEventRecord[]; pixelId: string };
 
 declare global {
   var conectaMemoryStore: MemoryStore | undefined;
   var conectaSchemaPromise: Promise<void> | undefined;
 }
 
-const memory = globalThis.conectaMemoryStore ?? { responses: [], pixelId: "" };
+const memory = globalThis.conectaMemoryStore ?? { responses: [], events: [], pixelId: "" };
+memory.events ??= [];
 globalThis.conectaMemoryStore = memory;
 
 function sqlClient() {
@@ -35,6 +38,37 @@ async function ensureSchema() {
         consent BOOLEAN NOT NULL,
         source JSONB NOT NULL DEFAULT '{}'::jsonb
       )
+    `;
+    await sql`ALTER TABLE survey_responses ADD COLUMN IF NOT EXISTS survey_slug TEXT`;
+    await sql`UPDATE survey_responses SET survey_slug = 'cruz-das-almas' WHERE survey_slug IS NULL OR survey_slug = ''`;
+    await sql`ALTER TABLE survey_responses ALTER COLUMN survey_slug SET DEFAULT 'cruz-das-almas'`;
+    await sql`ALTER TABLE survey_responses ALTER COLUMN survey_slug SET NOT NULL`;
+    await sql`
+      CREATE INDEX IF NOT EXISTS survey_responses_slug_created_idx
+      ON survey_responses (survey_slug, created_at DESC)
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS survey_events (
+        id TEXT PRIMARY KEY,
+        occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        survey_slug TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        event_name TEXT NOT NULL,
+        step SMALLINT,
+        field_id TEXT,
+        error_code TEXT,
+        duration_ms INTEGER,
+        device_class TEXT,
+        source JSONB NOT NULL DEFAULT '{}'::jsonb
+      )
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS survey_events_slug_created_idx
+      ON survey_events (survey_slug, occurred_at DESC)
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS survey_events_slug_session_idx
+      ON survey_events (survey_slug, session_id, event_name)
     `;
     await sql`
       CREATE TABLE IF NOT EXISTS campaign_settings (
@@ -70,11 +104,11 @@ export async function insertResponse(payload: SurveyPayload): Promise<StoredResp
   await ensureSchema();
   await sql`
     INSERT INTO survey_responses (
-      id, created_at, name, whatsapp, email, neighborhood,
+      id, created_at, survey_slug, name, whatsapp, email, neighborhood,
       identity_answers, segment_answers, postcard_company,
       postcard_reason, consent, source
     ) VALUES (
-      ${id}, ${createdAt}, ${payload.name}, ${payload.whatsapp}, ${payload.email},
+      ${id}, ${createdAt}, ${payload.surveySlug}, ${payload.name}, ${payload.whatsapp}, ${payload.email},
       ${payload.neighborhood}, ${JSON.stringify(payload.identityAnswers)},
       ${JSON.stringify(payload.segmentAnswers)}, ${payload.postcardCompany},
       ${payload.postcardReason}, ${payload.consent}, ${JSON.stringify(payload.source ?? {})}
@@ -84,12 +118,21 @@ export async function insertResponse(payload: SurveyPayload): Promise<StoredResp
   return stored;
 }
 
-export async function listResponses(): Promise<StoredResponse[]> {
+export async function listResponses(surveySlug?: SurveySlug): Promise<StoredResponse[]> {
   const sql = sqlClient();
-  if (!sql) return memory.responses;
+  if (!sql) return surveySlug ? memory.responses.filter((response) => response.surveySlug === surveySlug) : memory.responses;
   await ensureSchema();
-  const rows = await sql`
-    SELECT id, created_at, name, whatsapp, email, neighborhood,
+  const rows = surveySlug
+    ? await sql`
+    SELECT id, created_at, survey_slug, name, whatsapp, email, neighborhood,
+      identity_answers, segment_answers, postcard_company,
+      postcard_reason, consent, source
+    FROM survey_responses
+    WHERE survey_slug = ${surveySlug}
+    ORDER BY created_at DESC
+  `
+    : await sql`
+    SELECT id, created_at, survey_slug, name, whatsapp, email, neighborhood,
       identity_answers, segment_answers, postcard_company,
       postcard_reason, consent, source
     FROM survey_responses
@@ -99,6 +142,7 @@ export async function listResponses(): Promise<StoredResponse[]> {
   return rows.map((row) => ({
     id: String(row.id),
     createdAt: new Date(String(row.created_at)).toISOString(),
+    surveySlug: String(row.survey_slug) as SurveySlug,
     name: String(row.name),
     whatsapp: String(row.whatsapp),
     email: String(row.email),
@@ -108,6 +152,55 @@ export async function listResponses(): Promise<StoredResponse[]> {
     postcardCompany: String(row.postcard_company),
     postcardReason: String(row.postcard_reason),
     consent: Boolean(row.consent),
+    source: (row.source ?? {}) as Record<string, string>,
+  }));
+}
+
+export async function insertSurveyEvent(
+  event: Omit<SurveyEventRecord, "occurredAt">,
+): Promise<void> {
+  const occurredAt = new Date().toISOString();
+  const stored: SurveyEventRecord = { ...event, occurredAt };
+  const sql = sqlClient();
+  if (!sql) {
+    memory.events.push(stored);
+    return;
+  }
+  await ensureSchema();
+  await sql`
+    INSERT INTO survey_events (
+      id, occurred_at, survey_slug, session_id, event_name, step,
+      field_id, error_code, duration_ms, device_class, source
+    ) VALUES (
+      ${crypto.randomUUID()}, ${occurredAt}, ${event.surveySlug}, ${event.sessionId},
+      ${event.eventName}, ${event.step ?? null}, ${event.fieldId ?? null},
+      ${event.errorCode ?? null}, ${event.durationMs ?? null}, ${event.deviceClass ?? null},
+      ${JSON.stringify(event.source ?? {})}
+    )
+  `;
+}
+
+export async function listSurveyEvents(surveySlug: SurveySlug): Promise<SurveyEventRecord[]> {
+  const sql = sqlClient();
+  if (!sql) return memory.events.filter((event) => event.surveySlug === surveySlug);
+  await ensureSchema();
+  const rows = await sql`
+    SELECT occurred_at, survey_slug, session_id, event_name, step,
+      field_id, error_code, duration_ms, device_class, source
+    FROM survey_events
+    WHERE survey_slug = ${surveySlug}
+    ORDER BY occurred_at ASC
+  `;
+  return rows.map((row) => ({
+    occurredAt: new Date(String(row.occurred_at)).toISOString(),
+    surveySlug: String(row.survey_slug) as SurveySlug,
+    sessionId: String(row.session_id),
+    eventName: String(row.event_name) as SurveyEventRecord["eventName"],
+    step: row.step == null ? null : Number(row.step),
+    fieldId: row.field_id == null ? null : String(row.field_id),
+    errorCode: row.error_code == null ? null : String(row.error_code),
+    durationMs: row.duration_ms == null ? null : Number(row.duration_ms),
+    deviceClass: row.device_class == null ? null : (String(row.device_class) as SurveyEventRecord["deviceClass"]),
     source: (row.source ?? {}) as Record<string, string>,
   }));
 }

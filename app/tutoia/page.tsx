@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getSurveyConfig } from "@/lib/campaigns";
 import { SurveyPage } from "@/components/survey-page";
 
-const campaign = getSurveyConfig("cruz-das-almas");
+const campaign = getSurveyConfig("tutoia");
 
 export const revalidate = 300;
 
@@ -17,6 +17,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default function TutoiaPage() {
   return <SurveyPage campaign={campaign} />;
 }

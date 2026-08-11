@@ -1,21 +1,11 @@
 import type { DashboardData, StoredResponse } from "@/lib/types";
-import { segments } from "@/lib/types";
+import type { SurveyEventRecord } from "@/lib/telemetry-analytics";
+import { segments } from "@/lib/campaigns";
+import { summarizeCompanyMentions } from "@/lib/company-analytics";
+import { buildTelemetrySummary } from "@/lib/telemetry-analytics";
 
 function key(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
-}
-
-function rankings(values: string[]) {
-  const counts = new Map<string, { name: string; count: number }>();
-  values.filter(Boolean).forEach((value) => {
-    const normalized = key(value);
-    if (!normalized) return;
-    const current = counts.get(normalized);
-    counts.set(normalized, { name: current?.name ?? value.trim(), count: (current?.count ?? 0) + 1 });
-  });
-  return [...counts.values()]
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pt-BR"))
-    .map(({ name, count }) => ({ name, mentions: count }));
 }
 
 function campaignBreakdown(values: string[], total: number) {
@@ -31,28 +21,30 @@ function isMetaLead(source: Record<string, string> | undefined) {
   return Boolean(source?.fbclid) || /(facebook|instagram|meta|fb|ig)/.test(origin);
 }
 
-export function buildDashboardData(responses: StoredResponse[]): DashboardData {
+export function buildDashboardData(responses: StoredResponse[], events: SurveyEventRecord[] = []): DashboardData {
   const todayKey = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Fortaleza" });
-  const allCompanies: string[] = [];
+  const allCompanies: string[][] = [];
   const neighborhoods: string[] = [];
   const dailyMap = new Map<string, number>();
-  const segmentValues: Record<string, string[]> = Object.fromEntries(segments.map((segment) => [segment, []]));
+  const segmentValues: Record<string, string[][]> = Object.fromEntries(segments.map((segment) => [segment, []]));
   const channels: string[] = [];
   const campaigns: string[] = [];
   const creatives: string[] = [];
-  const postcardChoices: string[] = [];
+  const postcardChoices: string[][] = [];
   let trackedResponses = 0;
   let metaLeads = 0;
 
   for (const response of responses) {
+    const responseCompanies: string[] = [];
     neighborhoods.push(response.neighborhood);
-    response.identityAnswers.forEach(({ answer }) => allCompanies.push(answer));
-    allCompanies.push(response.postcardCompany);
-    postcardChoices.push(response.postcardCompany);
+    response.identityAnswers.forEach(({ answer }) => responseCompanies.push(answer));
+    responseCompanies.push(response.postcardCompany);
+    postcardChoices.push([response.postcardCompany]);
     response.segmentAnswers.forEach(({ segment, companies }) => {
-      allCompanies.push(...companies);
-      if (segmentValues[segment]) segmentValues[segment].push(...companies);
+      responseCompanies.push(...companies);
+      if (segmentValues[segment]) segmentValues[segment].push(companies);
     });
+    allCompanies.push(responseCompanies);
     const day = new Date(response.createdAt).toLocaleDateString("sv-SE", { timeZone: "America/Fortaleza" });
     dailyMap.set(day, (dailyMap.get(day) ?? 0) + 1);
 
@@ -79,8 +71,8 @@ export function buildDashboardData(responses: StoredResponse[]): DashboardData {
     today: dailyMap.get(todayKey) ?? 0,
     trackedResponses,
     metaLeads,
-    topCompanies: rankings(allCompanies).slice(0, 10),
-    postcardLeaders: rankings(postcardChoices).slice(0, 5),
+    topCompanies: summarizeCompanyMentions(allCompanies).slice(0, 10),
+    postcardLeaders: summarizeCompanyMentions(postcardChoices).slice(0, 5),
     neighborhoods: [...neighborhoodCounts.values()]
       .sort((a, b) => b.count - a.count)
       .slice(0, 8)
@@ -90,10 +82,11 @@ export function buildDashboardData(responses: StoredResponse[]): DashboardData {
       .slice(-14)
       .map(([date, count]) => ({ date: date.slice(5).split("-").reverse().join("/"), responses: count })),
     segmentLeaders: Object.fromEntries(
-      Object.entries(segmentValues).map(([segment, values]) => [segment, rankings(values).slice(0, 5)]),
+      Object.entries(segmentValues).map(([segment, values]) => [segment, summarizeCompanyMentions(values).slice(0, 5)]),
     ),
     channels: campaignBreakdown(channels, responses.length).slice(0, 5),
     campaigns: campaignBreakdown(campaigns, responses.length).slice(0, 6),
     creatives: campaignBreakdown(creatives, responses.length).slice(0, 6),
+    telemetry: buildTelemetrySummary(events),
   };
 }
