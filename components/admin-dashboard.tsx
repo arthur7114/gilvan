@@ -180,12 +180,28 @@ export function AdminDashboard({
         </section>
 
         <section id="segmentos" className="dashboard-section">
-          <div className="section-heading"><div><h2>Líderes por segmento</h2><p>As cinco empresas mais citadas em cada categoria.</p></div></div>
+          <div className="section-heading segment-results-heading">
+            <div><h2>Líderes por segmento</h2><p>As cinco empresas mais citadas em cada categoria.</p></div>
+            <span className="segment-legend">Menções · pessoas únicas</span>
+          </div>
           <div className="segment-rankings">
             {Object.entries(data.segmentLeaders).map(([segment, companies]) => (
-              <article key={segment}>
-                <h3>{segment}</h3>
-                {companies.length ? <ol>{companies.map((company, index) => <li key={company.name}><span>{index + 1}. {company.name}</span><b>{company.mentions}<small>{company.respondents} pessoas</small></b></li>)}</ol> : <p>Aguardando respostas</p>}
+              <article className="segment-card" key={segment}>
+                <header>
+                  <h3>{segment}</h3>
+                  {companies.length ? <span>{companies.length} empresas</span> : null}
+                </header>
+                {companies.length ? (
+                  <ol>
+                    {companies.map((company, index) => (
+                      <li key={company.name}>
+                        <b className="segment-position">{index + 1}</b>
+                        <strong className="segment-company" title={company.name}>{company.name}</strong>
+                        <span className="segment-score"><b>{company.mentions}</b><small>menções · {company.respondents} pessoas</small></span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : <p>Aguardando respostas</p>}
               </article>
             ))}
           </div>
