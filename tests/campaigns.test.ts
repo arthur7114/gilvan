@@ -30,6 +30,7 @@ test("telemetry accepts only enumerated attribution fields and drops personal da
     source: {
       utm_source: "meta",
       utm_content: "criativo-a",
+      fbclid: "identificador-compartilhado-com-a-resposta",
       answer: "conteúdo que nunca deve ser persistido",
       phone: "98999999999",
     },

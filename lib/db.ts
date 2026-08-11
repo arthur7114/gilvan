@@ -197,11 +197,11 @@ export async function listSurveyEvents(surveySlug: SurveySlug): Promise<SurveyEv
     sessionId: String(row.session_id),
     eventName: String(row.event_name) as SurveyEventRecord["eventName"],
     step: row.step == null ? null : Number(row.step),
-    fieldId: row.field_id == null ? null : String(row.field_id),
-    errorCode: row.error_code == null ? null : String(row.error_code),
+    fieldId: row.field_id == null ? null : (String(row.field_id) as SurveyEventRecord["fieldId"]),
+    errorCode: row.error_code == null ? null : (String(row.error_code) as SurveyEventRecord["errorCode"]),
     durationMs: row.duration_ms == null ? null : Number(row.duration_ms),
     deviceClass: row.device_class == null ? null : (String(row.device_class) as SurveyEventRecord["deviceClass"]),
-    source: (row.source ?? {}) as Record<string, string>,
+    source: (row.source ?? {}) as SurveyEventRecord["source"],
   }));
 }
 

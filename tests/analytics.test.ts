@@ -69,3 +69,28 @@ test("telemetry summary counts distinct sessions and excludes active sessions fr
     count: 1,
   });
 });
+
+test("telemetry infers prior funnel stages when asynchronous events are lost", () => {
+  const events: SurveyEventRecord[] = [
+    {
+      sessionId: "partial",
+      eventName: "step_complete",
+      occurredAt: "2026-08-10T12:00:00.000Z",
+      surveySlug: "tutoia",
+      step: 3,
+      durationMs: 2_000,
+    },
+    {
+      sessionId: "success-only",
+      eventName: "submit_success",
+      occurredAt: "2026-08-10T12:05:00.000Z",
+      surveySlug: "tutoia",
+      step: 4,
+    },
+  ];
+
+  const summary = buildTelemetrySummary(events, new Date("2026-08-10T12:10:00.000Z"));
+
+  assert.deepEqual(summary.funnel.map(({ sessions }) => sessions), [2, 2, 2, 2, 2, 1, 1]);
+  assert.ok(summary.funnel.every((stage, index, funnel) => index === 0 || stage.sessions <= funnel[index - 1].sessions));
+});

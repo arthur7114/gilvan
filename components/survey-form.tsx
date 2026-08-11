@@ -3,6 +3,14 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, LoaderCircle, Plus, Sparkles } from "lucide-react";
 import { segments, type SurveyConfig } from "@/lib/campaigns";
+import {
+  telemetrySourceKeys,
+  type TelemetryDeviceClass,
+  type TelemetryErrorCode,
+  type TelemetryEventName,
+  type TelemetryFieldId,
+  type TelemetrySource,
+} from "@/lib/telemetry-analytics";
 import type { SurveyPayload } from "@/lib/types";
 
 const stepLabels = ["Identidade", "Segmentos", "Grande escolha", "Contato"];
@@ -38,9 +46,15 @@ function campaignSource() {
 }
 
 function deviceClass() {
-  if (window.innerWidth < 640) return "mobile" as const;
-  if (window.innerWidth < 1024) return "tablet" as const;
-  return "desktop" as const;
+  if (window.innerWidth < 640) return "mobile" satisfies TelemetryDeviceClass;
+  if (window.innerWidth < 1024) return "tablet" satisfies TelemetryDeviceClass;
+  return "desktop" satisfies TelemetryDeviceClass;
+}
+
+function telemetrySource(source: Record<string, string>): TelemetrySource {
+  return Object.fromEntries(
+    telemetrySourceKeys.map((key) => [key, source[key]]).filter(([, value]) => value),
+  );
 }
 
 function Field({ label, name, value, onChange, placeholder, type = "text", autoComplete, error }: {
@@ -101,8 +115,8 @@ export function SurveyForm({ pixelId, campaign }: { pixelId: string; campaign: S
   }, [campaign.slug]);
 
   function emitTelemetry(
-    eventName: "survey_view" | "survey_start" | "step_view" | "step_complete" | "step_back" | "validation_error" | "add_company" | "submit_attempt" | "submit_success" | "submit_error",
-    fields: { step?: number; fieldId?: "identity0" | "postcardCompany" | "name" | "whatsapp" | "email" | "consent" | "form"; errorCode?: "required" | "invalid_phone" | "invalid_email" | "consent_required" | "submit_failed"; durationMs?: number } = {},
+    eventName: TelemetryEventName,
+    fields: { step?: number; fieldId?: TelemetryFieldId; errorCode?: TelemetryErrorCode; durationMs?: number } = {},
   ) {
     if (!sessionId.current) return;
     void fetch("/api/telemetry", {
@@ -113,7 +127,7 @@ export function SurveyForm({ pixelId, campaign }: { pixelId: string; campaign: S
         sessionId: sessionId.current,
         eventName,
         deviceClass: deviceClass(),
-        source: source.current,
+        source: telemetrySource(source.current),
         ...fields,
       }),
       keepalive: true,
@@ -181,6 +195,7 @@ export function SurveyForm({ pixelId, campaign }: { pixelId: string; campaign: S
   }
 
   function nextStep() {
+    markStarted();
     if (!validateStep(step)) return;
     emitTelemetry("step_complete", { step: step + 1, durationMs: Math.round(performance.now() - stepStartedAt.current) });
     track("PesquisaEtapa", { step: step + 1, step_name: stepLabels[step] });
@@ -203,6 +218,7 @@ export function SurveyForm({ pixelId, campaign }: { pixelId: string; campaign: S
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    markStarted();
     if (!validateStep(3)) return;
     emitTelemetry("step_complete", { step: 4, durationMs: Math.round(performance.now() - stepStartedAt.current) });
     emitTelemetry("submit_attempt", { step: 4 });

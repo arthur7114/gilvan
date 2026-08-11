@@ -22,7 +22,7 @@ Sem variáveis de ambiente, a aplicação funciona em modo de demonstração e m
 5. Faça um novo deploy.
 6. Acesse `/admin`, entre com a senha e configure o ID do Meta Pixel.
 
-As tabelas são criadas automaticamente na primeira utilização. O evento `Lead` é disparado no navegador somente após a API confirmar o salvamento da resposta.
+As tabelas e índices são criados automaticamente na primeira utilização. A migração idempotente `migrations/002_campaigns_and_telemetry.sql` adiciona `survey_slug`, atribui as respostas legadas a `cruz-das-almas` e cria `survey_events`; a mesma atualização também é executada pela aplicação ao conectar o Neon. O evento `Lead` é disparado no navegador somente após a API confirmar o salvamento da resposta.
 
 ## Rotas
 
@@ -31,7 +31,7 @@ As tabelas são criadas automaticamente na primeira utilização. O evento `Lead
 - `/admin` — painel protegido por senha.
 - `/api/admin/export?survey=tutoia` — exportação CSV autenticada da campanha selecionada.
 
-O painel abre Tutóia por padrão e permite alternar para Cruz das Almas sem misturar respostas. A telemetria guarda apenas sessão anônima, etapa, duração e códigos de erro; conteúdo digitado e dados de contato não são enviados para `survey_events`.
+O painel abre Tutóia por padrão e permite alternar para Cruz das Almas sem misturar respostas. A telemetria guarda identificador anônimo da aba, evento, etapa, duração, classe de dispositivo, códigos de erro e UTMs; conteúdo digitado, dados de contato, IP e identificadores de clique não são enviados para `survey_events`.
 
 ## Antes de divulgar
 

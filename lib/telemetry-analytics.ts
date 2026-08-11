@@ -15,17 +15,27 @@ export const telemetryEventNames = [
 
 export type TelemetryEventName = (typeof telemetryEventNames)[number];
 
+export const telemetryFieldIds = ["identity0", "postcardCompany", "name", "whatsapp", "email", "consent", "form"] as const;
+export const telemetryErrorCodes = ["required", "invalid_phone", "invalid_email", "consent_required", "submit_failed"] as const;
+export const telemetryDeviceClasses = ["mobile", "tablet", "desktop"] as const;
+export const telemetrySourceKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
+
+export type TelemetryFieldId = (typeof telemetryFieldIds)[number];
+export type TelemetryErrorCode = (typeof telemetryErrorCodes)[number];
+export type TelemetryDeviceClass = (typeof telemetryDeviceClasses)[number];
+export type TelemetrySource = Partial<Record<(typeof telemetrySourceKeys)[number], string>>;
+
 export type SurveyEventRecord = {
   surveySlug: SurveySlug;
   sessionId: string;
   eventName: TelemetryEventName;
   occurredAt: string;
   step?: number | null;
-  fieldId?: string | null;
-  errorCode?: string | null;
+  fieldId?: TelemetryFieldId | null;
+  errorCode?: TelemetryErrorCode | null;
   durationMs?: number | null;
-  deviceClass?: "mobile" | "tablet" | "desktop" | null;
-  source?: Record<string, string>;
+  deviceClass?: TelemetryDeviceClass | null;
+  source?: TelemetrySource;
 };
 
 export type TelemetrySummary = {
@@ -68,19 +78,34 @@ export function buildTelemetrySummary(events: SurveyEventRecord[], now = new Dat
   const stageDefinitions: Array<{
     key: TelemetrySummary["funnel"][number]["key"];
     label: string;
-    matches: (event: SurveyEventRecord) => boolean;
   }> = [
-    { key: "view", label: "Visualizações", matches: (event: SurveyEventRecord) => event.eventName === "survey_view" },
-    { key: "start", label: "Inícios", matches: (event: SurveyEventRecord) => event.eventName === "survey_start" },
-    { key: "step_1", label: "Etapa 1 concluída", matches: (event) => event.eventName === "step_complete" && event.step === 1 },
-    { key: "step_2", label: "Etapa 2 concluída", matches: (event) => event.eventName === "step_complete" && event.step === 2 },
-    { key: "step_3", label: "Etapa 3 concluída", matches: (event) => event.eventName === "step_complete" && event.step === 3 },
-    { key: "step_4", label: "Etapa 4 concluída", matches: (event) => event.eventName === "step_complete" && event.step === 4 },
-    { key: "success", label: "Participações", matches: (event: SurveyEventRecord) => event.eventName === "submit_success" },
+    { key: "view", label: "Visualizações" },
+    { key: "start", label: "Inícios" },
+    { key: "step_1", label: "Etapa 1 concluída" },
+    { key: "step_2", label: "Etapa 2 concluída" },
+    { key: "step_3", label: "Etapa 3 concluída" },
+    { key: "step_4", label: "Etapa 4 concluída" },
+    { key: "success", label: "Participações" },
   ];
 
-  const stageCounts = stageDefinitions.map((stage) =>
-    [...sessions.values()].filter((sessionEvents) => sessionEvents.some(stage.matches)).length,
+  function eventProgress(event: SurveyEventRecord) {
+    if (event.eventName === "submit_success") return 6;
+    if (event.eventName === "submit_attempt" || event.eventName === "submit_error") return 5;
+    if (event.eventName === "step_complete" && event.step) return Math.min(event.step + 1, 5);
+    if ((event.eventName === "step_view" || event.eventName === "step_back") && event.step) {
+      return event.step === 1 ? 0 : Math.min(event.step, 4);
+    }
+    if ((event.eventName === "validation_error" || event.eventName === "add_company") && event.step) {
+      return Math.max(1, Math.min(event.step, 4));
+    }
+    return event.eventName === "survey_start" ? 1 : 0;
+  }
+
+  const sessionProgress = [...sessions.values()].map((sessionEvents) =>
+    Math.max(...sessionEvents.map(eventProgress)),
+  );
+  const stageCounts = stageDefinitions.map((_, stageIndex) =>
+    sessionProgress.filter((progress) => progress >= stageIndex).length,
   );
 
   const funnel = stageDefinitions.map((stage, index) => ({

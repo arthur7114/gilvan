@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { surveySlugs } from "./campaigns.ts";
-import { telemetryEventNames } from "./telemetry-analytics.ts";
+import {
+  telemetryDeviceClasses,
+  telemetryErrorCodes,
+  telemetryEventNames,
+  telemetryFieldIds,
+  telemetrySourceKeys,
+} from "./telemetry-analytics.ts";
 
 const cleanText = z.string().trim().max(180);
 
@@ -34,24 +40,11 @@ export const telemetrySchema = z.object({
   sessionId: z.uuid(),
   eventName: z.enum(telemetryEventNames),
   step: z.number().int().min(1).max(4).nullable().optional(),
-  fieldId: z
-    .enum(["identity0", "postcardCompany", "name", "whatsapp", "email", "consent", "form"])
-    .nullable()
-    .optional(),
-  errorCode: z
-    .enum(["required", "invalid_phone", "invalid_email", "consent_required", "submit_failed"])
-    .nullable()
-    .optional(),
+  fieldId: z.enum(telemetryFieldIds).nullable().optional(),
+  errorCode: z.enum(telemetryErrorCodes).nullable().optional(),
   durationMs: z.number().int().min(0).max(3 * 60 * 60 * 1000).nullable().optional(),
-  deviceClass: z.enum(["mobile", "tablet", "desktop"]).nullable().optional(),
-  source: z.object({
-    utm_source: z.string().max(500).optional(),
-    utm_medium: z.string().max(500).optional(),
-    utm_campaign: z.string().max(500).optional(),
-    utm_content: z.string().max(500).optional(),
-    utm_term: z.string().max(500).optional(),
-    fbclid: z.string().max(500).optional(),
-  }).optional(),
+  deviceClass: z.enum(telemetryDeviceClasses).nullable().optional(),
+  source: z.object(Object.fromEntries(telemetrySourceKeys.map((key) => [key, z.string().max(500).optional()]))).optional(),
 });
 
 export const pixelSchema = z.object({
