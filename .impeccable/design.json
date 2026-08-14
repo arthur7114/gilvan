@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-01T14:56:08-03:00",
+  "generatedAt": "2026-08-14T12:58:35-03:00",
   "title": "Design System: Conecta Cidades — Pesquisa Cruz das Almas",
   "extensions": {
     "colorMeta": {
@@ -9,7 +9,13 @@
       "heritage-gold": { "role": "secondary", "displayName": "Ouro Patrimonial", "canonical": "#d79b24" },
       "celebration-gold": { "role": "secondary", "displayName": "Ouro de Celebração", "canonical": "#efb844" },
       "official-paper": { "role": "neutral", "displayName": "Papel Oficial", "canonical": "#fffaf0" },
-      "ink": { "role": "neutral", "displayName": "Tinta", "canonical": "#10233f" }
+      "ink": { "role": "neutral", "displayName": "Tinta", "canonical": "#10233f" },
+      "yah-pool-blue": { "role": "primary", "displayName": "Azul de Piscina", "canonical": "#087bc2" },
+      "yah-deep-blue": { "role": "primary", "displayName": "Azul de Profundidade", "canonical": "#063e73" },
+      "yah-cyan": { "role": "secondary", "displayName": "Ciano de Onda", "canonical": "#19b9dc" },
+      "yah-coral-action": { "role": "secondary", "displayName": "Coral de Ação", "canonical": "#d10a50" },
+      "yah-yellow": { "role": "tertiary", "displayName": "Amarelo de Acesso", "canonical": "#ffd324" },
+      "yah-ink": { "role": "neutral", "displayName": "Tinta de Água", "canonical": "#123651" }
     },
     "typographyMeta": {
       "display": { "displayName": "Voz da Cidade", "purpose": "Títulos de campanha e momentos cerimoniais." },
@@ -19,17 +25,23 @@
     "shadows": [
       { "name": "poster", "value": "0 28px 70px rgba(0,0,0,.42), 0 0 55px rgba(215,155,36,.14)", "purpose": "Apresentar o criativo como peça comemorativa." },
       { "name": "ballot", "value": "0 24px 70px rgba(18,32,54,.14)", "purpose": "Elevar o formulário sobre o papel oficial." },
-      { "name": "panel", "value": "0 7px 22px rgba(20,35,55,.05)", "purpose": "Separação discreta no painel administrativo." }
+      { "name": "panel", "value": "0 7px 22px rgba(20,35,55,.05)", "purpose": "Separação discreta no painel administrativo." },
+      { "name": "yah-ticket", "value": "0 28px 65px rgba(1,43,75,.38)", "purpose": "Elevar o ingresso Cartão Black sobre a fotografia." },
+      { "name": "yah-action", "value": "0 13px 28px rgba(205,16,84,.22)", "purpose": "Destacar o envio da pesquisa rápida." }
     ],
     "motion": [
       { "name": "poster-reveal", "value": "900ms cubic-bezier(.16,1,.3,1)", "purpose": "Um único momento autoral de apresentação do criativo." },
-      { "name": "control-state", "value": "180ms ease", "purpose": "Hover e foco responsivos sem distrair da tarefa." }
+      { "name": "control-state", "value": "180ms ease", "purpose": "Hover e foco responsivos sem distrair da tarefa." },
+      { "name": "yah-ticket-reveal", "value": "850ms cubic-bezier(.16,1,.3,1)", "purpose": "Apresentar uma vez o ingresso Cartão Black; removido com preferência por movimento reduzido." }
     ],
     "breakpoints": [
       { "name": "mobile", "value": "640px" },
       { "name": "stack", "value": "900px" },
       { "name": "dashboard-compact", "value": "820px" },
-      { "name": "dashboard-grid", "value": "1180px" }
+      { "name": "dashboard-grid", "value": "1180px" },
+      { "name": "yah-mobile", "value": "520px" },
+      { "name": "yah-stack", "value": "860px" },
+      { "name": "yah-question-stack", "value": "1080px" }
     ]
   },
   "components": [
@@ -71,17 +83,42 @@
       "description": "Selo cerimonial pequeno; pílulas não são usadas como contêiner comum.",
       "html": "<span class=\"ds-edition\">EDIÇÃO HISTÓRICA · 130 ANOS</span>",
       "css": ".ds-edition{display:inline-block;padding:7px 12px;border:1px solid rgba(239,184,68,.55);border-radius:999px;color:#f8dea0;font:700 12px Barlow,sans-serif;letter-spacing:.12em;text-transform:uppercase}"
+    },
+    {
+      "name": "YAH Access Wristband",
+      "kind": "custom",
+      "refersTo": "yah-access-band-selected",
+      "description": "Resposta objetiva em forma de pulseira de acesso, com furo, perfuração e estado selecionado inequívoco.",
+      "html": "<button class=\"ds-yah-band\"><i></i><span>Sim, quero saber mais</span></button>",
+      "css": ".ds-yah-band{position:relative;min-height:50px;padding:9px 16px 9px 39px;border:1px solid #063e73;border-radius:999px;background:#063e73;color:#fff;font:700 13px Barlow,sans-serif}.ds-yah-band i{position:absolute;left:12px;top:50%;width:11px;height:11px;border:2px solid #ffd324;border-radius:50%;background:#ffd324;box-shadow:inset 0 0 0 2px #063e73;transform:translateY(-50%)}.ds-yah-band:after{content:'';position:absolute;left:29px;top:12px;bottom:12px;border-left:1px dashed rgba(255,255,255,.35)}.ds-yah-band:hover{transform:translateY(-1px)}.ds-yah-band:focus-visible{outline:3px solid #71c7f4;outline-offset:3px}"
+    },
+    {
+      "name": "YAH Submit Button",
+      "kind": "button",
+      "refersTo": "yah-submit",
+      "description": "Ação final de largura total em coral com contraste AA.",
+      "html": "<button class=\"ds-yah-submit\">ENVIAR RESPOSTAS</button>",
+      "css": ".ds-yah-submit{width:100%;min-height:58px;padding:0 24px;border:0;border-radius:14px;background:#d10a50;color:#fff;font:800 16px Barlow,sans-serif;box-shadow:0 13px 28px rgba(205,16,84,.22);transition:background .16s ease,transform .16s ease}.ds-yah-submit:hover{background:#b90743;transform:translateY(-2px)}.ds-yah-submit:focus-visible{outline:3px solid #178dcb;outline-offset:3px}"
+    },
+    {
+      "name": "YAH Black Card Ticket",
+      "kind": "custom",
+      "description": "Ingresso roxo inclinado que identifica o Cartão Black sem inventar benefícios.",
+      "html": "<div class=\"ds-yah-ticket\"><small>YAH AQUAPARK</small><strong>CARTÃO<br>BLACK</strong></div>",
+      "css": ".ds-yah-ticket{position:relative;overflow:hidden;width:210px;padding:16px 22px;border-radius:14px;background:#5121c8;color:#fff;box-shadow:0 28px 65px rgba(1,43,75,.38);transform:rotate(3.5deg);font-family:Barlow,sans-serif}.ds-yah-ticket:before{content:'';position:absolute;top:-35px;right:-24px;width:92px;height:72px;border-radius:50%;background:#f41364}.ds-yah-ticket small,.ds-yah-ticket strong{position:relative;z-index:1}.ds-yah-ticket small{font-size:9px;font-weight:700;letter-spacing:.08em}.ds-yah-ticket strong{display:block;margin-top:3px;font-size:29px;line-height:.82}"
     }
   ],
   "narrative": {
     "northStar": "A Cédula Cívica de Cruz das Almas",
     "overview": "Solenidade pública com calor local: campanha expressiva, formulário disciplinado e painel sóbrio. A identidade deve parecer histórica, confiável e construída para esta cidade.",
-    "keyCharacteristics": ["Azul institucional dominante", "Ouro reservado à escolha", "Papel claro para respostas", "Criativo oficial como evidência", "Operação administrativa sóbria"],
+    "keyCharacteristics": ["Azul institucional dominante", "Ouro reservado à escolha", "Papel claro para respostas", "Criativo oficial como evidência", "Operação administrativa sóbria", "YAH isolado em fotografia costeira, azul-piscina, coral e amarelo", "Marcas oficiais usadas por assets, nunca recriadas tipograficamente"],
     "rules": [
       { "name": "Regra do Ouro", "body": "O dourado marca escolha, celebração ou ação; nunca decoração sem função.", "section": "colors" },
-      { "name": "Regra da Voz Dupla", "body": "Bebas Neue fala pela cidade; Barlow ajuda a pessoa a completar a tarefa.", "section": "typography" }
+      { "name": "Regra da Voz Dupla", "body": "Bebas Neue fala pela cidade; Barlow ajuda a pessoa a completar a tarefa.", "section": "typography" },
+      { "name": "Regra da Paleta Isolada", "body": "Azul-piscina, coral e amarelo pertencem à rota YAH; azul-marinho, ouro e papel continuam sendo a voz das campanhas Conecta Cidades.", "section": "colors" },
+      { "name": "Regra da Marca Direta", "body": "Logotipo oficial é asset recortado, nunca recriação tipográfica.", "section": "components" }
     ],
-    "dos": ["Preservar azul, ouro, papel e o criativo oficial como um único mundo.", "Manter a ação principal visível no primeiro viewport.", "Garantir contraste de pelo menos 4.5:1 em textos auxiliares."],
-    "donts": ["Não usar cartões genéricos como estrutura de toda a experiência.", "Não espalhar ouro como decoração.", "Não inventar vencedores, métricas, parceiros ou prêmios."]
+    "dos": ["Preservar azul, ouro, papel e o criativo oficial como um único mundo.", "Manter a ação principal visível no primeiro viewport.", "Garantir contraste de pelo menos 4.5:1 em textos auxiliares.", "Tratar /yah como extensão visual, de conteúdo e persistência isolada."],
+    "donts": ["Não usar cartões genéricos como estrutura de toda a experiência.", "Não espalhar ouro como decoração.", "Não inventar vencedores, métricas, parceiros ou prêmios.", "Não recriar o logotipo do YAH com tipografia nem pedir dados pessoais na pesquisa YAH."]
   }
 }

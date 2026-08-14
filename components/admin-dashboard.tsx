@@ -73,6 +73,10 @@ export function AdminDashboard({
               <small>{campaign.state}</small>
             </Link>
           ))}
+          <Link href="/admin/yah">
+            <strong>YAH Aquapark</strong>
+            <small>Litoral do Piauí</small>
+          </Link>
         </nav>
 
         {!databaseConfigured && (

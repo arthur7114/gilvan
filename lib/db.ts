@@ -2,16 +2,18 @@ import { neon } from "@neondatabase/serverless";
 import type { SurveySlug } from "@/lib/campaigns";
 import type { SurveyEventRecord } from "@/lib/telemetry-analytics";
 import type { StoredResponse, SurveyPayload } from "@/lib/types";
+import type { StoredYahResponse, YahSurveyPayload } from "@/lib/yah-survey";
 
-type MemoryStore = { responses: StoredResponse[]; events: SurveyEventRecord[]; pixelId: string };
+type MemoryStore = { responses: StoredResponse[]; yahResponses: StoredYahResponse[]; events: SurveyEventRecord[]; pixelId: string };
 
 declare global {
   var conectaMemoryStore: MemoryStore | undefined;
   var conectaSchemaPromise: Promise<void> | undefined;
 }
 
-const memory = globalThis.conectaMemoryStore ?? { responses: [], events: [], pixelId: "" };
+const memory = globalThis.conectaMemoryStore ?? { responses: [], yahResponses: [], events: [], pixelId: "" };
 memory.events ??= [];
+memory.yahResponses ??= [];
 globalThis.conectaMemoryStore = memory;
 
 function sqlClient() {
@@ -78,6 +80,20 @@ async function ensureSchema() {
       )
     `;
     await sql`INSERT INTO campaign_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`;
+    await sql`
+      CREATE TABLE IF NOT EXISTS yah_survey_responses (
+        id TEXT PRIMARY KEY,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        sesc_card TEXT NOT NULL,
+        knows_park TEXT NOT NULL,
+        black_card_interest TEXT NOT NULL,
+        source JSONB NOT NULL DEFAULT '{}'::jsonb
+      )
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS yah_survey_responses_created_idx
+      ON yah_survey_responses (created_at DESC)
+    `;
   })();
 
   try {
@@ -88,6 +104,48 @@ async function ensureSchema() {
     globalThis.conectaSchemaPromise = undefined;
     throw error;
   }
+}
+
+export async function insertYahResponse(payload: YahSurveyPayload): Promise<StoredYahResponse> {
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  const stored: StoredYahResponse = { ...payload, id, createdAt };
+  const sql = sqlClient();
+
+  if (!sql) {
+    memory.yahResponses.unshift(stored);
+    return stored;
+  }
+
+  await ensureSchema();
+  await sql`
+    INSERT INTO yah_survey_responses (
+      id, created_at, sesc_card, knows_park, black_card_interest, source
+    ) VALUES (
+      ${id}, ${createdAt}, ${payload.sescCard}, ${payload.knowsPark},
+      ${payload.blackCardInterest}, ${JSON.stringify(payload.source ?? {})}
+    )
+  `;
+  return stored;
+}
+
+export async function listYahResponses(): Promise<StoredYahResponse[]> {
+  const sql = sqlClient();
+  if (!sql) return memory.yahResponses;
+  await ensureSchema();
+  const rows = await sql`
+    SELECT id, created_at, sesc_card, knows_park, black_card_interest, source
+    FROM yah_survey_responses
+    ORDER BY created_at DESC
+  `;
+  return rows.map((row) => ({
+    id: String(row.id),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+    sescCard: String(row.sesc_card) as StoredYahResponse["sescCard"],
+    knowsPark: String(row.knows_park) as StoredYahResponse["knowsPark"],
+    blackCardInterest: String(row.black_card_interest) as StoredYahResponse["blackCardInterest"],
+    source: (row.source ?? {}) as Record<string, string>,
+  }));
 }
 
 export async function insertResponse(payload: SurveyPayload): Promise<StoredResponse> {

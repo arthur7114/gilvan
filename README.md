@@ -1,6 +1,6 @@
 # Pesquisas Conecta Cidades
 
-Aplicação Next.js das campanhas “Cruz das Almas está escolhendo” e “Tutóia está escolhendo”. Inclui formulários públicos, painel administrativo separado por campanha, funil anônimo, análise das respostas, exportação CSV e Meta Pixel.
+Aplicação Next.js das campanhas “Cruz das Almas está escolhendo”, “Tutóia está escolhendo” e da Pesquisa Rápida do YAH Aquapark. Inclui formulários públicos, painel administrativo separado por campanha, funil anônimo, análise das respostas, exportação CSV e Meta Pixel.
 
 ## Rodar localmente
 
@@ -28,10 +28,12 @@ As tabelas e índices são criados automaticamente na primeira utilização. A m
 
 - `/` — campanha e pesquisa pública.
 - `/tutoia` — campanha e pesquisa pública de Tutóia.
+- `/yah` — Pesquisa Rápida do YAH Aquapark.
 - `/admin` — painel protegido por senha.
+- `/admin/yah` — resultados e respostas da pesquisa do YAH Aquapark.
 - `/api/admin/export?survey=tutoia` — exportação CSV autenticada da campanha selecionada.
 
-O painel abre Tutóia por padrão e permite alternar para Cruz das Almas sem misturar respostas. A telemetria guarda identificador anônimo da aba, evento, etapa, duração, classe de dispositivo, códigos de erro e UTMs; conteúdo digitado, dados de contato, IP e identificadores de clique não são enviados para `survey_events`.
+O painel abre Tutóia por padrão e permite alternar entre as três pesquisas sem misturar respostas. A pesquisa YAH usa uma tabela própria, não solicita dados pessoais e dispara o evento `Lead` somente quando a pessoa manifesta interesse no Cartão Black. A telemetria das campanhas Conecta Cidades guarda identificador anônimo da aba, evento, etapa, duração, classe de dispositivo, códigos de erro e UTMs; conteúdo digitado, dados de contato, IP e identificadores de clique não são enviados para `survey_events`.
 
 ## Antes de divulgar
 
