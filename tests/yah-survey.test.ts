@@ -8,6 +8,9 @@ test("YAH survey requires exactly one valid answer for each question", () => {
     sescCard: "yes",
     knowsPark: "no",
     blackCardInterest: "yes",
+    name: "Maria da Silva",
+    whatsapp: "(86) 99999-9999",
+    consent: true,
     source: { utm_source: "meta", unexpected: "discarded" },
   });
 
@@ -15,9 +18,39 @@ test("YAH survey requires exactly one valid answer for each question", () => {
     sescCard: "yes",
     knowsPark: "no",
     blackCardInterest: "yes",
+    name: "Maria da Silva",
+    whatsapp: "(86) 99999-9999",
+    consent: true,
     source: { utm_source: "meta" },
   });
   assert.equal(yahSurveySchema.safeParse({ sescCard: "yes", knowsPark: "no" }).success, false);
+});
+
+test("YAH survey keeps the contact details of participants who consent", () => {
+  const parsed = yahSurveySchema.parse({
+    sescCard: "yes",
+    knowsPark: "yes",
+    blackCardInterest: "yes",
+    name: "Maria da Silva",
+    whatsapp: "(86) 99999-9999",
+    consent: true,
+  });
+
+  assert.equal(parsed.name, "Maria da Silva");
+  assert.equal(parsed.whatsapp, "(86) 99999-9999");
+  assert.equal(parsed.consent, true);
+});
+
+test("YAH survey rejects invalid WhatsApp numbers and missing consent", () => {
+  const answers = {
+    sescCard: "yes",
+    knowsPark: "yes",
+    blackCardInterest: "yes",
+    name: "Maria da Silva",
+  } as const;
+
+  assert.equal(yahSurveySchema.safeParse({ ...answers, whatsapp: "abcdefgh", consent: true }).success, false);
+  assert.equal(yahSurveySchema.safeParse({ ...answers, whatsapp: "86999999999" }).success, false);
 });
 
 test("YAH dashboard summarizes Black Card interest and each answer", () => {
@@ -27,6 +60,9 @@ test("YAH dashboard summarizes Black Card interest and each answer", () => {
     sescCard: id === "1" ? "yes" : "no",
     knowsPark: "yes",
     blackCardInterest,
+    name: `Participante ${id}`,
+    whatsapp: `8699999999${id}`,
+    consent: true,
     source: id === "1" ? { utm_campaign: "black-card" } : {},
   });
   const data = buildYahDashboardData([response("1", "yes"), response("2", "not_now")]);

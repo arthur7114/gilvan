@@ -886,6 +886,43 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .yah-options input:focus-visible + span { outline: 3px solid #71c7f4; outline-offset: 3px; }
 .yah-question.has-error legend { color: #a62f34; }
 .yah-question-error { grid-column: 1 / -1; margin: -10px 0 0 44px; color: #a62f34; font-size: 13px; font-weight: 700; }
+.yah-contact {
+  display: grid;
+  gap: 14px;
+  margin: 22px 0 0;
+  padding: 20px;
+  border: 1px solid #c9e2ee;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .78);
+}
+.yah-contact legend {
+  padding: 0 8px;
+  color: var(--yah-deep);
+  font-size: 16px;
+  font-weight: 800;
+}
+.yah-contact > p { margin: -4px 0 0; color: #49677d; font-size: 13px; line-height: 1.45; }
+.yah-contact-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.yah-contact-fields label { display: grid; gap: 6px; color: #264b65; font-size: 12px; font-weight: 800; }
+.yah-contact-fields input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #aacbdc;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--yah-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.yah-contact-fields input::placeholder { color: #7892a4; font-weight: 500; }
+.yah-contact-fields input:focus { border-color: var(--yah-blue); outline: 3px solid rgba(8, 123, 194, .14); }
+.yah-contact-fields input[aria-invalid="true"] { border-color: #c83b4e; }
+.yah-consent { display: grid; grid-template-columns: 19px 1fr; gap: 10px; align-items: flex-start; color: #49677d; cursor: pointer; font-size: 12px; line-height: 1.45; }
+.yah-consent input { width: 18px; height: 18px; min-height: 18px; margin: 1px 0 0; accent-color: var(--yah-blue); }
+.yah-consent.has-error { color: #a62f34; }
+.yah-contact-error { color: #a62f34; font-size: 12px; font-weight: 700; }
 .yah-submit-error { margin-top: 20px; padding: 13px 15px; border-radius: 13px; background: #fff0f2; color: #9d1c43; font-size: 14px; font-weight: 700; }
 .yah-submit {
   width: 100%;
@@ -981,6 +1018,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .yah-question { gap: 13px; padding: 22px 0; }
   .yah-question legend { font-size: 15px; }
   .yah-options span { min-height: 50px; padding: 9px 9px 9px 39px; }
+  .yah-contact-fields { grid-template-columns: 1fr; }
   .yah-submit { margin-top: 25px; }
 }
 

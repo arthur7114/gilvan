@@ -29,10 +29,21 @@ export const yahQuestions = [
 
 export const yahSourceKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"] as const;
 
+export const yahContactSchema = z.object({
+  name: z.string().trim().min(2, "Informe seu nome.").max(120, "Informe um nome com até 120 caracteres."),
+  whatsapp: z
+    .string()
+    .trim()
+    .max(30, "Informe um WhatsApp válido.")
+    .refine((value) => value.replace(/\D/g, "").length >= 8, "Informe um WhatsApp válido."),
+  consent: z.literal(true, { error: "Confirme o uso dos seus dados para enviar a pesquisa." }),
+});
+
 export const yahSurveySchema = z.object({
   sescCard: z.enum(["yes", "no"]),
   knowsPark: z.enum(["yes", "no"]),
   blackCardInterest: z.enum(["yes", "not_now"]),
+  ...yahContactSchema.shape,
   source: z.object(
     Object.fromEntries(yahSourceKeys.map((key) => [key, z.string().trim().max(500).optional()])),
   ).optional(),
@@ -40,9 +51,10 @@ export const yahSurveySchema = z.object({
 
 export type YahSurveyPayload = z.infer<typeof yahSurveySchema>;
 
-export type StoredYahResponse = YahSurveyPayload & {
+export type StoredYahResponse = Omit<YahSurveyPayload, "consent"> & {
   id: string;
   createdAt: string;
+  consent: boolean;
 };
 
 export type YahAnswerBreakdown = {

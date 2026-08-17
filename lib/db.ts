@@ -87,9 +87,15 @@ async function ensureSchema() {
         sesc_card TEXT NOT NULL,
         knows_park TEXT NOT NULL,
         black_card_interest TEXT NOT NULL,
+        name TEXT NOT NULL DEFAULT '',
+        whatsapp TEXT NOT NULL DEFAULT '',
+        consent BOOLEAN NOT NULL DEFAULT FALSE,
         source JSONB NOT NULL DEFAULT '{}'::jsonb
       )
     `;
+    await sql`ALTER TABLE yah_survey_responses ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT ''`;
+    await sql`ALTER TABLE yah_survey_responses ADD COLUMN IF NOT EXISTS whatsapp TEXT NOT NULL DEFAULT ''`;
+    await sql`ALTER TABLE yah_survey_responses ADD COLUMN IF NOT EXISTS consent BOOLEAN NOT NULL DEFAULT FALSE`;
     await sql`
       CREATE INDEX IF NOT EXISTS yah_survey_responses_created_idx
       ON yah_survey_responses (created_at DESC)
@@ -120,10 +126,11 @@ export async function insertYahResponse(payload: YahSurveyPayload): Promise<Stor
   await ensureSchema();
   await sql`
     INSERT INTO yah_survey_responses (
-      id, created_at, sesc_card, knows_park, black_card_interest, source
+      id, created_at, sesc_card, knows_park, black_card_interest, name, whatsapp, consent, source
     ) VALUES (
       ${id}, ${createdAt}, ${payload.sescCard}, ${payload.knowsPark},
-      ${payload.blackCardInterest}, ${JSON.stringify(payload.source ?? {})}
+      ${payload.blackCardInterest}, ${payload.name}, ${payload.whatsapp}, ${payload.consent},
+      ${JSON.stringify(payload.source ?? {})}
     )
   `;
   return stored;
@@ -134,7 +141,7 @@ export async function listYahResponses(): Promise<StoredYahResponse[]> {
   if (!sql) return memory.yahResponses;
   await ensureSchema();
   const rows = await sql`
-    SELECT id, created_at, sesc_card, knows_park, black_card_interest, source
+    SELECT id, created_at, sesc_card, knows_park, black_card_interest, name, whatsapp, consent, source
     FROM yah_survey_responses
     ORDER BY created_at DESC
   `;
@@ -144,6 +151,9 @@ export async function listYahResponses(): Promise<StoredYahResponse[]> {
     sescCard: String(row.sesc_card) as StoredYahResponse["sescCard"],
     knowsPark: String(row.knows_park) as StoredYahResponse["knowsPark"],
     blackCardInterest: String(row.black_card_interest) as StoredYahResponse["blackCardInterest"],
+    name: String(row.name ?? ""),
+    whatsapp: String(row.whatsapp ?? ""),
+    consent: Boolean(row.consent),
     source: (row.source ?? {}) as Record<string, string>,
   }));
 }

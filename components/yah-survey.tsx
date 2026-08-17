@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
 import { Check, LoaderCircle, Send, Waves } from "lucide-react";
-import { yahQuestions, yahSourceKeys, type YahSurveyPayload } from "@/lib/yah-survey";
+import { yahContactSchema, yahQuestions, yahSourceKeys, type YahSurveyPayload } from "@/lib/yah-survey";
 import { MetaPixel } from "@/components/meta-pixel";
 
 type Answers = Partial<Pick<YahSurveyPayload, "sescCard" | "knowsPark" | "blackCardInterest">>;
+type Contact = { name: string; whatsapp: string; consent: boolean };
 
 function campaignSource() {
   const params = new URLSearchParams(window.location.search);
@@ -17,6 +18,7 @@ function campaignSource() {
 
 export function YahSurvey({ pixelId }: { pixelId: string }) {
   const [answers, setAnswers] = useState<Answers>({});
+  const [contact, setContact] = useState<Contact>({ name: "", whatsapp: "", consent: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -34,14 +36,26 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
     }
   }
 
+  function updateContact<K extends keyof Contact>(field: K, value: Contact[K]) {
+    setContact((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: "" }));
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = Object.fromEntries(
       yahQuestions.filter((question) => !answers[question.id]).map((question) => [question.id, "Escolha uma resposta."]),
     );
+    const parsedContact = yahContactSchema.safeParse(contact);
+    if (!parsedContact.success) {
+      parsedContact.error.issues.forEach((issue) => {
+        const field = String(issue.path[0]);
+        nextErrors[field] ??= issue.message;
+      });
+    }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
-      document.querySelector(".yah-question-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector(".yah-question-error, .yah-contact-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -51,7 +65,7 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
       const response = await fetch("/api/yah-responses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...answers, source: campaignSource(), companyWebsite }),
+        body: JSON.stringify({ ...answers, ...contact, source: campaignSource(), companyWebsite }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Não foi possível registrar suas respostas.");
@@ -117,7 +131,7 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
             <h2>Pesquisa concluída!</h2>
             <p>Obrigado por compartilhar sua opinião sobre o YAH Aquapark.</p>
             {answers.blackCardInterest === "yes" ? (
-              <strong>Seu interesse no Cartão Black foi registrado.</strong>
+              <strong>Seu interesse foi registrado. O YAH poderá falar com você pelo WhatsApp.</strong>
             ) : (
               <strong>Resposta registrada com sucesso.</strong>
             )}
@@ -152,11 +166,57 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
               ))}
             </div>
 
+            <fieldset className="yah-contact">
+              <legend>Como o YAH pode falar com você?</legend>
+              <p>Deixe seu contato para receber informações sobre o Cartão Black e as novidades do parque.</p>
+              <div className="yah-contact-fields">
+                <label>
+                  <span>Nome completo</span>
+                  <input
+                    name="name"
+                    value={contact.name}
+                    onChange={(event) => updateContact("name", event.target.value)}
+                    placeholder="Como podemos chamar você?"
+                    autoComplete="name"
+                    aria-invalid={Boolean(errors.name)}
+                    aria-describedby={errors.name ? "yah-name-error" : undefined}
+                  />
+                  {errors.name && <small className="yah-contact-error" id="yah-name-error">{errors.name}</small>}
+                </label>
+                <label>
+                  <span>WhatsApp</span>
+                  <input
+                    name="whatsapp"
+                    value={contact.whatsapp}
+                    onChange={(event) => updateContact("whatsapp", event.target.value)}
+                    placeholder="(86) 99999-9999"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    aria-invalid={Boolean(errors.whatsapp)}
+                    aria-describedby={errors.whatsapp ? "yah-whatsapp-error" : undefined}
+                  />
+                  {errors.whatsapp && <small className="yah-contact-error" id="yah-whatsapp-error">{errors.whatsapp}</small>}
+                </label>
+              </div>
+              <label className={errors.consent ? "yah-consent has-error" : "yah-consent"}>
+                <input
+                  type="checkbox"
+                  checked={contact.consent}
+                  onChange={(event) => updateContact("consent", event.target.checked)}
+                  aria-invalid={Boolean(errors.consent)}
+                  aria-describedby={errors.consent ? "yah-consent-error" : undefined}
+                />
+                <span>Concordo com o uso dos meus dados pelo YAH Aquapark para contato sobre o Cartão Black e comunicações relacionadas ao parque.</span>
+              </label>
+              {errors.consent && <small className="yah-contact-error" id="yah-consent-error">{errors.consent}</small>}
+            </fieldset>
+
             {submitError && <div className="yah-submit-error" role="alert">{submitError}</div>}
             <button className="yah-submit" type="submit" disabled={submitting}>
               {submitting ? <><LoaderCircle className="spin" size={20} /> Enviando...</> : <>Enviar respostas <Send size={19} /></>}
             </button>
-            <p className="yah-privacy">Nenhum dado pessoal é solicitado nesta pesquisa.</p>
+            <p className="yah-privacy">Seus dados serão usados somente para as finalidades autorizadas acima.</p>
             <input
               className="honeypot"
               name="companyWebsite"

@@ -16,7 +16,10 @@ export async function POST(request: Request) {
 
     const parsed = yahSurveySchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Responda às três perguntas antes de enviar." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Responda às três perguntas, informe seu contato e aceite o uso dos dados." },
+        { status: 400 },
+      );
     }
 
     const saved = await insertYahResponse(parsed.data);

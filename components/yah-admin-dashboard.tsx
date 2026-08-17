@@ -81,17 +81,21 @@ export function YahAdminDashboard({ data, databaseConfigured }: { data: YahDashb
           <div className="section-heading"><div><h2>Respostas recentes</h2><p>Últimas participações registradas no YAH Aquapark.</p></div></div>
           <div className="responses-table-wrap">
             <table>
-              <thead><tr><th>Carteirinha Sesc</th><th>Conhecia o parque</th><th>Interesse no Black</th><th>Data</th></tr></thead>
+              <thead><tr><th>Participante</th><th>Carteirinha Sesc</th><th>Conhecia o parque</th><th>Interesse no Black</th><th>Data</th></tr></thead>
               <tbody>
                 {data.responses.slice(0, 20).map((response) => (
                   <tr key={response.id}>
+                    <td>
+                      <strong>{response.name || "Contato não coletado"}</strong>
+                      <small>{response.whatsapp || "WhatsApp não coletado"}<br />{response.consent ? "Consentimento confirmado" : "Sem consentimento registrado"}</small>
+                    </td>
                     <td>{answerLabel("sescCard", response.sescCard)}</td>
                     <td>{answerLabel("knowsPark", response.knowsPark)}</td>
                     <td><strong>{answerLabel("blackCardInterest", response.blackCardInterest)}</strong></td>
                     <td>{new Date(response.createdAt).toLocaleString("pt-BR", { timeZone: "America/Fortaleza" })}</td>
                   </tr>
                 ))}
-                {!data.responses.length && <tr><td colSpan={4} className="table-empty">Nenhuma resposta registrada ainda.</td></tr>}
+                {!data.responses.length && <tr><td colSpan={5} className="table-empty">Nenhuma resposta registrada ainda.</td></tr>}
               </tbody>
             </table>
           </div>

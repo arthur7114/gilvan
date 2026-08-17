@@ -18,12 +18,15 @@ export async function GET() {
 
   const responses = await listYahResponses();
   const headers = [
-    "ID", "Data", "Tem ou conhece carteirinha Sesc", "Sabia da inauguração do parque",
+    "ID", "Data", "Nome", "WhatsApp", "Consentimento", "Tem ou conhece carteirinha Sesc", "Sabia da inauguração do parque",
     "Interesse no Cartão Black", "UTM Source", "UTM Medium", "UTM Campaign", "UTM Content", "UTM Term", "FBCLID",
   ];
   const rows = responses.map((response) => [
     response.id,
     new Date(response.createdAt).toLocaleString("pt-BR", { timeZone: "America/Fortaleza" }),
+    response.name,
+    response.whatsapp,
+    response.consent ? "Sim" : "Não",
     response.sescCard === "yes" ? "Sim" : "Não",
     response.knowsPark === "yes" ? "Sim" : "Não",
     response.blackCardInterest === "yes" ? "Sim, quero saber mais" : "Não no momento",
