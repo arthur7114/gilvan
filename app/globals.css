@@ -951,9 +951,10 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .yah-contact > p { margin: -4px 0 0; color: #49677d; font-size: 13px; line-height: 1.45; }
 .yah-contact-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .yah-contact-fields label { display: grid; gap: 6px; color: #264b65; font-size: 12px; font-weight: 800; }
-.yah-contact-fields input {
+.yah-contact-fields input,
+.yah-contact-fields select {
   width: 100%;
-  min-height: 48px;
+  min-height: 51px;
   padding: 0 14px;
   border: 1px solid #aacbdc;
   border-radius: 12px;
@@ -963,9 +964,12 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   font-size: 14px;
   font-weight: 600;
 }
+.yah-contact-income { grid-column: 1 / -1; }
 .yah-contact-fields input::placeholder { color: #7892a4; font-weight: 500; }
-.yah-contact-fields input:focus { border-color: var(--yah-blue); outline: 3px solid rgba(8, 123, 194, .14); }
-.yah-contact-fields input[aria-invalid="true"] { border-color: #c83b4e; }
+.yah-contact-fields input:focus,
+.yah-contact-fields select:focus { border-color: var(--yah-blue); outline: 3px solid rgba(8, 123, 194, .14); }
+.yah-contact-fields input[aria-invalid="true"],
+.yah-contact-fields select[aria-invalid="true"] { border-color: #c83b4e; }
 .yah-consent { display: grid; grid-template-columns: 19px 1fr; gap: 10px; align-items: flex-start; color: #49677d; cursor: pointer; font-size: 12px; line-height: 1.45; }
 .yah-consent input { width: 18px; height: 18px; min-height: 18px; margin: 1px 0 0; accent-color: var(--yah-blue); }
 .yah-consent.has-error { color: #a62f34; }

@@ -33,7 +33,7 @@ As tabelas e índices são criados automaticamente na primeira utilização. A m
 - `/admin/yah` — resultados e respostas da pesquisa do YAH Aquapark.
 - `/api/admin/export?survey=tutoia` — exportação CSV autenticada da campanha selecionada.
 
-O painel abre Tutóia por padrão e permite alternar entre as três pesquisas sem misturar respostas. A pesquisa YAH usa uma tabela própria, solicita nome e WhatsApp com consentimento e dispara o evento `Lead` somente quando a pessoa manifesta interesse no Cartão Black. A telemetria das campanhas Conecta Cidades guarda identificador anônimo da aba, evento, etapa, duração, classe de dispositivo, códigos de erro e UTMs; conteúdo digitado, dados de contato, IP e identificadores de clique não são enviados para `survey_events`.
+O painel abre Tutóia por padrão e permite alternar entre as três pesquisas sem misturar respostas. A pesquisa YAH usa uma tabela própria, solicita nome, WhatsApp, bairro, profissão e faixa de renda com consentimento e dispara o evento `Lead` somente quando a pessoa manifesta interesse no Cartão Black. A telemetria das campanhas Conecta Cidades guarda identificador anônimo da aba, evento, etapa, duração, classe de dispositivo, códigos de erro e UTMs; conteúdo digitado, dados de contato, IP e identificadores de clique não são enviados para `survey_events`.
 
 ## Antes de divulgar
 

@@ -39,6 +39,21 @@ export const yahQuestions = [
 
 export const yahSourceKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"] as const;
 
+export const yahIncomeRanges = [
+  { value: "up_to_1", label: "Até 1 salário mínimo" },
+  { value: "1_to_2", label: "Mais de 1 até 2 salários mínimos" },
+  { value: "2_to_5", label: "Mais de 2 até 5 salários mínimos" },
+  { value: "5_to_10", label: "Mais de 5 até 10 salários mínimos" },
+  { value: "over_10", label: "Acima de 10 salários mínimos" },
+  { value: "prefer_not_to_say", label: "Prefiro não informar" },
+] as const;
+
+export type YahIncomeRange = (typeof yahIncomeRanges)[number]["value"];
+
+export function yahIncomeRangeLabel(value: string) {
+  return yahIncomeRanges.find((range) => range.value === value)?.label ?? value;
+}
+
 export const yahContactSchema = z.object({
   name: z.string().trim().min(2, "Informe seu nome.").max(120, "Informe um nome com até 120 caracteres."),
   whatsapp: z
@@ -46,6 +61,11 @@ export const yahContactSchema = z.object({
     .trim()
     .max(30, "Informe um WhatsApp válido.")
     .refine((value) => value.replace(/\D/g, "").length >= 8, "Informe um WhatsApp válido."),
+  neighborhood: z.string().trim().min(2, "Informe seu bairro.").max(120, "Informe um bairro com até 120 caracteres."),
+  profession: z.string().trim().min(2, "Informe sua profissão.").max(120, "Informe uma profissão com até 120 caracteres."),
+  incomeRange: z.enum(yahIncomeRanges.map((range) => range.value) as [YahIncomeRange, ...YahIncomeRange[]], {
+    error: "Selecione sua faixa de renda.",
+  }),
   consent: z.literal(true, { error: "Confirme o uso dos seus dados para enviar a pesquisa." }),
 });
 

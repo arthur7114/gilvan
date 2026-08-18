@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
 import { canUseDatabase, listYahResponses } from "@/lib/db";
+import { yahIncomeRangeLabel } from "@/lib/yah-survey";
 
 function safeCell(value: unknown) {
   let text = String(value ?? "").replace(/\r?\n/g, " ");
@@ -18,7 +19,7 @@ export async function GET() {
 
   const responses = await listYahResponses();
   const headers = [
-    "ID", "Data", "Nome", "WhatsApp", "Consentimento", "Tem ou conhece carteirinha Sesc", "Sabia da inauguração do parque",
+    "ID", "Data", "Nome", "WhatsApp", "Bairro", "Profissão", "Faixa de renda", "Consentimento", "Tem ou conhece carteirinha Sesc", "Sabia da inauguração do parque",
     "Interesse no Cartão Black", "UTM Source", "UTM Medium", "UTM Campaign", "UTM Content", "UTM Term", "FBCLID",
   ];
   const rows = responses.map((response) => [
@@ -26,6 +27,9 @@ export async function GET() {
     new Date(response.createdAt).toLocaleString("pt-BR", { timeZone: "America/Fortaleza" }),
     response.name,
     response.whatsapp,
+    response.neighborhood,
+    response.profession,
+    yahIncomeRangeLabel(response.incomeRange),
     response.consent ? "Sim" : "Não",
     response.sescCard === "yes" ? "Sim" : "Não",
     response.knowsPark === "yes" ? "Sim" : "Não",

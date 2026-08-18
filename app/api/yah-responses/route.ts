@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const parsed = yahSurveySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Responda às três perguntas, informe seu contato e aceite o uso dos dados." },
+        { error: "Responda às três perguntas, informe seus dados e aceite o uso deles." },
         { status: 400 },
       );
     }

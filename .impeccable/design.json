@@ -118,7 +118,7 @@
       { "name": "Regra da Paleta Isolada", "body": "Azul-piscina, coral e amarelo pertencem à rota YAH; azul-marinho, ouro e papel continuam sendo a voz das campanhas Conecta Cidades.", "section": "colors" },
       { "name": "Regra da Marca Direta", "body": "Logotipo oficial é asset recortado, nunca recriação tipográfica.", "section": "components" }
     ],
-    "dos": ["Preservar azul, ouro, papel e o criativo oficial como um único mundo.", "Manter a ação principal visível no primeiro viewport.", "Garantir contraste de pelo menos 4.5:1 em textos auxiliares.", "Tratar /yah como extensão visual, de conteúdo e persistência isolada."],
-    "donts": ["Não usar cartões genéricos como estrutura de toda a experiência.", "Não espalhar ouro como decoração.", "Não inventar vencedores, métricas, parceiros ou prêmios.", "Não recriar o logotipo do YAH com tipografia nem pedir dados pessoais na pesquisa YAH."]
+    "dos": ["Preservar azul, ouro, papel e o criativo oficial como um único mundo.", "Manter a ação principal no fluxo contínuo, logo após os dados obrigatórios.", "Garantir contraste de pelo menos 4.5:1 em textos auxiliares.", "Tratar /yah como extensão visual, de conteúdo e persistência isolada."],
+    "donts": ["Não usar cartões genéricos como estrutura de toda a experiência.", "Não espalhar ouro como decoração.", "Não inventar vencedores, métricas, parceiros ou prêmios.", "Não recriar o logotipo do YAH com tipografia nem pedir dados pessoais além de nome, WhatsApp, bairro, profissão e faixa de renda com consentimento."]
   }
 }

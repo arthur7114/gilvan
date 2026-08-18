@@ -1,7 +1,7 @@
 import { BarChart3, Database, Download, LogOut, Megaphone, MousePointerClick, Settings2, Users } from "lucide-react";
 import Link from "next/link";
 import { campaigns } from "@/lib/campaigns";
-import { yahQuestions, type YahDashboardData } from "@/lib/yah-survey";
+import { yahIncomeRangeLabel, yahQuestions, type YahDashboardData } from "@/lib/yah-survey";
 
 function answerLabel(questionId: (typeof yahQuestions)[number]["id"], value: string) {
   return yahQuestions.find((question) => question.id === questionId)?.options.find((option) => option.value === value)?.label ?? value;
@@ -81,7 +81,7 @@ export function YahAdminDashboard({ data, databaseConfigured }: { data: YahDashb
           <div className="section-heading"><div><h2>Respostas recentes</h2><p>Últimas participações registradas no YAH Aquapark.</p></div></div>
           <div className="responses-table-wrap">
             <table>
-              <thead><tr><th>Participante</th><th>Carteirinha Sesc</th><th>Conhecia o parque</th><th>Interesse no Black</th><th>Data</th></tr></thead>
+              <thead><tr><th>Participante</th><th>Perfil</th><th>Carteirinha Sesc</th><th>Conhecia o parque</th><th>Interesse no Black</th><th>Data</th></tr></thead>
               <tbody>
                 {data.responses.slice(0, 20).map((response) => (
                   <tr key={response.id}>
@@ -89,13 +89,17 @@ export function YahAdminDashboard({ data, databaseConfigured }: { data: YahDashb
                       <strong>{response.name || "Contato não coletado"}</strong>
                       <small>{response.whatsapp || "WhatsApp não coletado"}<br />{response.consent ? "Consentimento confirmado" : "Sem consentimento registrado"}</small>
                     </td>
+                    <td>
+                      <strong>{response.neighborhood || "Bairro não coletado"}</strong>
+                      <small>{response.profession || "Profissão não coletada"}<br />{response.incomeRange ? yahIncomeRangeLabel(response.incomeRange) : "Renda não coletada"}</small>
+                    </td>
                     <td>{answerLabel("sescCard", response.sescCard)}</td>
                     <td>{answerLabel("knowsPark", response.knowsPark)}</td>
                     <td><strong>{answerLabel("blackCardInterest", response.blackCardInterest)}</strong></td>
                     <td>{new Date(response.createdAt).toLocaleString("pt-BR", { timeZone: "America/Fortaleza" })}</td>
                   </tr>
                 ))}
-                {!data.responses.length && <tr><td colSpan={5} className="table-empty">Nenhuma resposta registrada ainda.</td></tr>}
+                {!data.responses.length && <tr><td colSpan={6} className="table-empty">Nenhuma resposta registrada ainda.</td></tr>}
               </tbody>
             </table>
           </div>

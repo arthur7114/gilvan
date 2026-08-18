@@ -3,11 +3,26 @@
 import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
 import { Check, CreditCard, LoaderCircle, Plane, Send, Smartphone, Waves } from "lucide-react";
-import { yahContactSchema, yahPrizeOffer, yahQuestions, yahSourceKeys, type YahSurveyPayload } from "@/lib/yah-survey";
+import {
+  yahContactSchema,
+  yahIncomeRanges,
+  yahPrizeOffer,
+  yahQuestions,
+  yahSourceKeys,
+  type YahIncomeRange,
+  type YahSurveyPayload,
+} from "@/lib/yah-survey";
 import { MetaPixel } from "@/components/meta-pixel";
 
 type Answers = Partial<Pick<YahSurveyPayload, "sescCard" | "knowsPark" | "blackCardInterest">>;
-type Contact = { name: string; whatsapp: string; consent: boolean };
+type Contact = {
+  name: string;
+  whatsapp: string;
+  neighborhood: string;
+  profession: string;
+  incomeRange: "" | YahIncomeRange;
+  consent: boolean;
+};
 const prizeIcons = {
   "black-card": CreditCard,
   "iphone-17": Smartphone,
@@ -23,7 +38,14 @@ function campaignSource() {
 
 export function YahSurvey({ pixelId }: { pixelId: string }) {
   const [answers, setAnswers] = useState<Answers>({});
-  const [contact, setContact] = useState<Contact>({ name: "", whatsapp: "", consent: false });
+  const [contact, setContact] = useState<Contact>({
+    name: "",
+    whatsapp: "",
+    neighborhood: "",
+    profession: "",
+    incomeRange: "",
+    consent: false,
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -100,7 +122,7 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
         className="yah-design-contract"
         aria-hidden="true"
         dangerouslySetInnerHTML={{
-          __html: "<!-- THESIS: uma pulseira de acesso vira pesquisa em três toques; recusa o formulário corporativo genérico. OWN-WORLD: azul de piscina em escala, coral e amarelo de sinalização, fotografia solar e controles inspirados em pulseiras. STORY: reconhecer o parque, responder e manifestar interesse no Cartão Black. FIRST VIEWPORT: paisagem do litoral à esquerda e a pesquisa completa à direita, com envio visível. FORM: pulseira de acesso, quarta direção fundamentada, seed 2f008023. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md -->",
+          __html: "<!-- THESIS: uma pulseira de acesso vira pesquisa em três toques; recusa o formulário corporativo genérico. OWN-WORLD: azul de piscina em escala, coral e amarelo de sinalização, fotografia solar e controles inspirados em pulseiras. STORY: reconhecer o parque, responder e manifestar interesse no Cartão Black. FIRST VIEWPORT: paisagem do litoral à esquerda e início da pesquisa à direita; dados e envio seguem no mesmo fluxo de rolagem. FORM: pulseira de acesso, quarta direção fundamentada, seed 2f008023. FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md -->",
         }}
       />
       <MetaPixel pixelId={pixelId} surveySlug="yah-aquapark" campaignName="Pesquisa Rápida — YAH Aquapark" />
@@ -190,8 +212,8 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
             </div>
 
             <fieldset className="yah-contact">
-              <legend>Seu contato para participar</legend>
-              <p>Precisamos do seu nome e WhatsApp para identificar sua participação e falar com você sobre a campanha.</p>
+              <legend>Seus dados para participar</legend>
+              <p>Use seus dados reais para identificar sua participação e conhecermos melhor o público da campanha.</p>
               <div className="yah-contact-fields">
                 <label>
                   <span>Nome completo</span>
@@ -221,6 +243,46 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
                   />
                   {errors.whatsapp && <small className="yah-contact-error" id="yah-whatsapp-error">{errors.whatsapp}</small>}
                 </label>
+                <label>
+                  <span>Bairro</span>
+                  <input
+                    name="neighborhood"
+                    value={contact.neighborhood}
+                    onChange={(event) => updateContact("neighborhood", event.target.value)}
+                    placeholder="Em qual bairro você mora?"
+                    autoComplete="address-level3"
+                    aria-invalid={Boolean(errors.neighborhood)}
+                    aria-describedby={errors.neighborhood ? "yah-neighborhood-error" : undefined}
+                  />
+                  {errors.neighborhood && <small className="yah-contact-error" id="yah-neighborhood-error">{errors.neighborhood}</small>}
+                </label>
+                <label>
+                  <span>Profissão</span>
+                  <input
+                    name="profession"
+                    value={contact.profession}
+                    onChange={(event) => updateContact("profession", event.target.value)}
+                    placeholder="Qual é a sua profissão?"
+                    autoComplete="organization-title"
+                    aria-invalid={Boolean(errors.profession)}
+                    aria-describedby={errors.profession ? "yah-profession-error" : undefined}
+                  />
+                  {errors.profession && <small className="yah-contact-error" id="yah-profession-error">{errors.profession}</small>}
+                </label>
+                <label className="yah-contact-income">
+                  <span>Renda familiar mensal</span>
+                  <select
+                    name="incomeRange"
+                    value={contact.incomeRange}
+                    onChange={(event) => updateContact("incomeRange", event.target.value as Contact["incomeRange"])}
+                    aria-invalid={Boolean(errors.incomeRange)}
+                    aria-describedby={errors.incomeRange ? "yah-income-error" : undefined}
+                  >
+                    <option value="">Selecione uma faixa</option>
+                    {yahIncomeRanges.map((range) => <option key={range.value} value={range.value}>{range.label}</option>)}
+                  </select>
+                  {errors.incomeRange && <small className="yah-contact-error" id="yah-income-error">{errors.incomeRange}</small>}
+                </label>
               </div>
               <label className={errors.consent ? "yah-consent has-error" : "yah-consent"}>
                 <input
@@ -230,7 +292,7 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
                   aria-invalid={Boolean(errors.consent)}
                   aria-describedby={errors.consent ? "yah-consent-error" : undefined}
                 />
-                <span>Concordo com o uso dos meus dados pelo YAH Aquapark para identificar minha participação, contato sobre os prêmios, o Cartão Black e comunicações relacionadas ao parque.</span>
+                <span>Concordo com o uso dos meus dados, incluindo bairro, profissão e faixa de renda, pelo YAH Aquapark para identificar minha participação, contato sobre os prêmios, o Cartão Black e comunicações relacionadas ao parque.</span>
               </label>
               {errors.consent && <small className="yah-contact-error" id="yah-consent-error">{errors.consent}</small>}
             </fieldset>

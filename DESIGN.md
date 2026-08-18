@@ -180,9 +180,9 @@ O hero usa uma composição de duas colunas até `900px`, com manifesto e ação
 
 O ritmo aproxima rótulo e controle, separa perguntas em blocos de cerca de `20–24px` e reserva espaços maiores (`42–105px`) entre capítulos da campanha.
 
-Na rota YAH, o primeiro viewport de desktop é uma grade de duas colunas em altura total: fotografia costeira à esquerda e a pesquisa completa, com envio visível, à direita. Abaixo de `1080px`, cada pergunta empilha enunciado e respostas; em `860px`, a rota passa a um fluxo vertical com fotografia compacta de `430px` antes do formulário; em `520px`, a abertura cai para `355px` e a pesquisa usa margens de `18px`. O conteúdo não cria etapas adicionais: as três escolhas e o envio permanecem uma única tarefa.
+Na rota YAH, o primeiro viewport de desktop é uma grade de duas colunas em altura total: fotografia costeira à esquerda e o início da pesquisa à direita. O envio permanece no mesmo fluxo contínuo, depois das três respostas e dos dados obrigatórios, e pode exigir rolagem em alturas compactas. Abaixo de `1080px`, cada pergunta empilha enunciado e respostas; em `860px`, a rota passa a um fluxo vertical com fotografia compacta de `430px` antes do formulário; em `520px`, a abertura cai para `355px` e a pesquisa usa margens de `18px`. O conteúdo não cria etapas adicionais: perguntas, dados e envio permanecem uma única tarefa.
 
-**Regra da Primeira Dobra.** Desktop mostra costa e pesquisa completa juntas; celular mostra uma foto compacta e conduz imediatamente às três perguntas.
+**Regra da Primeira Dobra.** Desktop mostra costa e início da pesquisa juntos; celular mostra uma foto compacta e conduz imediatamente às três perguntas. Os dados adicionais continuam no fluxo natural de rolagem, sem modal ou etapa separada.
 
 ## Elevation & Depth
 
@@ -244,7 +244,7 @@ O criativo oficial é a principal evidência visual. Ele entra uma vez com `clip
 
 ### YAH Submit and Success
 
-O envio ocupa toda a largura, usa coral de ação, altura mínima de `58px` e elevação curta. Desabilitado, mantém a forma e reduz a opacidade. O sucesso troca a tarefa por um selo amarelo circular e uma confirmação direta; nenhum dado pessoal é solicitado ou exibido.
+O envio ocupa toda a largura, usa coral de ação, altura mínima de `58px` e elevação curta. Desabilitado, mantém a forma e reduz a opacidade. O sucesso troca a tarefa por um selo amarelo circular e uma confirmação direta. Nome, WhatsApp, bairro, profissão e faixa de renda são solicitados com consentimento e ficam visíveis somente no painel administrativo e na exportação autenticada.
 
 ### YAH Official Brand and Black Card Ticket
 
@@ -257,7 +257,7 @@ O logotipo oficial do YAH é sempre um recorte direto do criativo fornecido, com
 ### Do:
 
 - **Do** preservar azul, ouro, papel e o criativo oficial como um único mundo visual.
-- **Do** manter a ação principal visível no primeiro viewport de desktop e celular.
+- **Do** manter a ação principal no fluxo contínuo da pesquisa, imediatamente após os dados obrigatórios.
 - **Do** usar linguagem espontânea e controles familiares para reduzir abandono.
 - **Do** manter textos auxiliares com contraste mínimo de `4.5:1`.
 - **Do** tratar `/yah` como uma extensão visual isolada, com persistência e conteúdo igualmente isolados.
@@ -272,4 +272,4 @@ O logotipo oficial do YAH é sempre um recorte direto do criativo fornecido, com
 - **Don't** usar dourado em todo elemento; sua raridade comunica escolha.
 - **Don't** aplicar azul-piscina, coral ou amarelo da YAH às campanhas Conecta Cidades ou ao painel administrativo.
 - **Don't** recriar o logotipo oficial do YAH com tipografia, nem inventar benefícios, preços ou condições do Cartão Black.
-- **Don't** pedir nome, telefone, e-mail ou qualquer dado pessoal na pesquisa YAH.
+- **Don't** pedir dados pessoais além de nome, WhatsApp, bairro, profissão e faixa de renda, nem coletá-los sem consentimento explícito na pesquisa YAH.

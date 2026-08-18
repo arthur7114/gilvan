@@ -25,12 +25,12 @@ Une pesquisas públicas à mensuração de campanha. Nas campanhas Conecta Cidad
 
 ## Operating Context
 
-O tráfego chega principalmente por Meta Ads em dispositivos móveis. Nas campanhas Conecta Cidades, o participante responde perguntas abertas sobre empresas da cidade, informa nome, WhatsApp, e-mail e bairro para concorrer a prêmios e aceita o uso desses dados para a finalidade da campanha. Na Pesquisa Rápida YAH, responde somente três questões objetivas, sem informar dados pessoais. A equipe usa um painel protegido por senha.
+O tráfego chega principalmente por Meta Ads em dispositivos móveis. Nas campanhas Conecta Cidades, o participante responde perguntas abertas sobre empresas da cidade, informa nome, WhatsApp, e-mail e bairro para concorrer a prêmios e aceita o uso desses dados para a finalidade da campanha. Na Pesquisa Rápida YAH, responde três questões objetivas e informa nome, WhatsApp, bairro, profissão e faixa de renda com consentimento. A equipe usa um painel protegido por senha.
 
 ## Capabilities and Constraints
 
 - Formulário em blocos com progresso, validação e experiência mobile-first.
-- Formulário YAH de uma etapa, com três questões objetivas e persistência isolada.
+- Formulário YAH de uma etapa, com três questões objetivas, dados do participante com consentimento e persistência isolada.
 - Perguntas abertas do roteiro fornecido, incluindo até três empresas em cada segmento.
 - Persistência no Neon Postgres.
 - Painel administrativo protegido por uma senha única na primeira versão.
