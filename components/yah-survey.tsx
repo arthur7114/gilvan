@@ -2,12 +2,17 @@
 
 import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
-import { Check, LoaderCircle, Send, Waves } from "lucide-react";
-import { yahContactSchema, yahQuestions, yahSourceKeys, type YahSurveyPayload } from "@/lib/yah-survey";
+import { Check, CreditCard, LoaderCircle, Plane, Send, Smartphone, Waves } from "lucide-react";
+import { yahContactSchema, yahPrizeOffer, yahQuestions, yahSourceKeys, type YahSurveyPayload } from "@/lib/yah-survey";
 import { MetaPixel } from "@/components/meta-pixel";
 
 type Answers = Partial<Pick<YahSurveyPayload, "sescCard" | "knowsPark" | "blackCardInterest">>;
 type Contact = { name: string; whatsapp: string; consent: boolean };
+const prizeIcons = {
+  "black-card": CreditCard,
+  "iphone-17": Smartphone,
+  "international-flight": Plane,
+} as const;
 
 function campaignSource() {
   const params = new URLSearchParams(window.location.search);
@@ -114,8 +119,8 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
           <span className="yah-official-logo" role="img" aria-label="YAH Aquapark" />
         </header>
         <div className="yah-visual-copy">
-          <h1>Três respostas.<br />Um verão inteiro pela frente.</h1>
-          <p>Sua opinião ajuda o YAH a entender quem já conhece essa novidade do litoral do Piauí.</p>
+          <h1>Três respostas.<br />Três prêmios.<br />Um verão pela frente.</h1>
+          <p>Compartilhe sua opinião e concorra ao pacote de prêmios do YAH Aquapark.</p>
         </div>
         <figure className="yah-black-card-creative" role="img" aria-label="Cartão Black do YAH Aquapark">
           <span>YAH Aquapark</span>
@@ -129,7 +134,7 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
           <div className="yah-success" role="status">
             <span><Check size={35} strokeWidth={3} /></span>
             <h2>Pesquisa concluída!</h2>
-            <p>Obrigado por compartilhar sua opinião sobre o YAH Aquapark.</p>
+            <p>Obrigado por compartilhar sua opinião. Sua resposta e seu contato foram registrados.</p>
             {answers.blackCardInterest === "yes" ? (
               <strong>Seu interesse foi registrado. O YAH poderá falar com você pelo WhatsApp.</strong>
             ) : (
@@ -142,6 +147,24 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
               <div><Waves size={22} /><h2 id="yah-survey-title">Pesquisa Rápida <span>YAH Aquapark</span></h2></div>
               <p>Três perguntas. Leva menos de 1 minuto.</p>
             </div>
+
+            <section className="yah-prize-offer" aria-labelledby="yah-prize-title">
+              <header>
+                <h3 id="yah-prize-title">{yahPrizeOffer.title}</h3>
+                <p>{yahPrizeOffer.description}</p>
+              </header>
+              <ul>
+                {yahPrizeOffer.prizes.map((prize) => {
+                  const PrizeIcon = prizeIcons[prize.id];
+                  return (
+                    <li key={prize.id}>
+                      <span aria-hidden="true"><PrizeIcon size={19} strokeWidth={2.2} /></span>
+                      <strong>{prize.name}</strong>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
 
             <div className="yah-questions">
               {yahQuestions.map((question, index) => (
@@ -167,8 +190,8 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
             </div>
 
             <fieldset className="yah-contact">
-              <legend>Como o YAH pode falar com você?</legend>
-              <p>Deixe seu contato para receber informações sobre o Cartão Black e as novidades do parque.</p>
+              <legend>Seu contato para participar</legend>
+              <p>Precisamos do seu nome e WhatsApp para identificar sua participação e falar com você sobre a campanha.</p>
               <div className="yah-contact-fields">
                 <label>
                   <span>Nome completo</span>
@@ -207,14 +230,14 @@ export function YahSurvey({ pixelId }: { pixelId: string }) {
                   aria-invalid={Boolean(errors.consent)}
                   aria-describedby={errors.consent ? "yah-consent-error" : undefined}
                 />
-                <span>Concordo com o uso dos meus dados pelo YAH Aquapark para contato sobre o Cartão Black e comunicações relacionadas ao parque.</span>
+                <span>Concordo com o uso dos meus dados pelo YAH Aquapark para identificar minha participação, contato sobre os prêmios, o Cartão Black e comunicações relacionadas ao parque.</span>
               </label>
               {errors.consent && <small className="yah-contact-error" id="yah-consent-error">{errors.consent}</small>}
             </fieldset>
 
             {submitError && <div className="yah-submit-error" role="alert">{submitError}</div>}
             <button className="yah-submit" type="submit" disabled={submitting}>
-              {submitting ? <><LoaderCircle className="spin" size={20} /> Enviando...</> : <>Enviar respostas <Send size={19} /></>}
+              {submitting ? <><LoaderCircle className="spin" size={20} /> Registrando...</> : <>Enviar e concorrer <Send size={19} /></>}
             </button>
             <p className="yah-privacy">Seus dados serão usados somente para as finalidades autorizadas acima.</p>
             <input

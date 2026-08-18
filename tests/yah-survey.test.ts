@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildYahDashboardData, yahSurveySchema, type StoredYahResponse } from "../lib/yah-survey.ts";
+import { buildYahDashboardData, yahPrizeOffer, yahSurveySchema, type StoredYahResponse } from "../lib/yah-survey.ts";
+
+test("YAH offer includes every announced prize", () => {
+  assert.deepEqual(yahPrizeOffer.prizes.map((prize) => prize.name), [
+    "Cartão Black do YAH Aquapark",
+    "iPhone 17",
+    "Passagem internacional",
+  ]);
+});
 
 test("YAH survey requires exactly one valid answer for each question", () => {
   const parsed = yahSurveySchema.parse({

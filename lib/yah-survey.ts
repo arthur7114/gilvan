@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+export const yahPrizeOffer = {
+  title: "Responda e concorra ao pacote YAH",
+  description: "Ao concluir a pesquisa, você concorre a este pacote de prêmios.",
+  prizes: [
+    { id: "black-card", name: "Cartão Black do YAH Aquapark" },
+    { id: "iphone-17", name: "iPhone 17" },
+    { id: "international-flight", name: "Passagem internacional" },
+  ],
+} as const;
+
 export const yahQuestions = [
   {
     id: "sescCard",
