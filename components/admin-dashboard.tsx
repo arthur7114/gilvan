@@ -201,7 +201,13 @@ export function AdminDashboard({
                       <li key={company.name}>
                         <b className="segment-position">{index + 1}</b>
                         <strong className="segment-company" title={company.name}>{company.name}</strong>
-                        <span className="segment-score"><b>{company.mentions}</b><small>menções · {company.respondents} pessoas</small></span>
+                        <span
+                          className="segment-score"
+                          aria-label={`${company.mentions} ${company.mentions === 1 ? "menção" : "menções"} e ${company.respondents} ${company.respondents === 1 ? "pessoa única" : "pessoas únicas"}`}
+                        >
+                          <span><b>{company.mentions}</b><small>{company.mentions === 1 ? "menção" : "menções"}</small></span>
+                          <span><b>{company.respondents}</b><small>{company.respondents === 1 ? "pessoa" : "pessoas"}</small></span>
+                        </span>
                       </li>
                     ))}
                   </ol>
